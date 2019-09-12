@@ -27,17 +27,20 @@ namespace sbl
 	class Logger
 	{
 	public:
+		// Constructors and destructors
+
 		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE (except STREAM_TYPE::FILE)
-		// Defaults to STREAM_TYPE::STDOUT
+		// Defaults to STREAM_TYPE::STDOUT and no auto flush
 		Logger(STREAM_TYPE type = STREAM_TYPE::STDOUT)
-			: m_StreamType(type)
+			: m_StreamType(type), m_AutoFlush(false)
 		{
 			if (m_StreamType == STREAM_TYPE::FILE) throw std::exception("Cannot make logger with STREAM_TYPE::FILE with no file provided.");
 		}
 
 		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE (except STREAM_TYPE::FILE)
-		Logger(const char* filepath)
-			: m_StreamType(STREAM_TYPE::FILE)
+		// By default auto flush is turned on
+		Logger(const char* filepath, bool autoFlush = true)
+			: m_StreamType(STREAM_TYPE::FILE), m_AutoFlush(autoFlush)
 		{
 			if (!filepath || strlen(filepath) < 1 || *filepath == 0) throw std::exception("No file path provided. Cannot create output stream.");
 
@@ -46,8 +49,9 @@ namespace sbl
 		}
 
 		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE (except STREAM_TYPE::FILE)
-		Logger(const std::string& filepath)
-			: m_StreamType(STREAM_TYPE::FILE)
+		// By default auto flush is turned on
+		Logger(const std::string& filepath, bool autoFlush = true)
+			: m_StreamType(STREAM_TYPE::FILE), m_AutoFlush(autoFlush)
 		{
 			if (filepath.empty() 
 				|| filepath.size() < 1 
@@ -58,12 +62,24 @@ namespace sbl
 			if (!m_FileStream.is_open()) throw std::exception("Cannot open file to output to.");
 		}
 
-		// Close file stream if open
+		// Copy constructor
+		Logger(const Logger& other)
+			: m_StreamType(other.m_StreamType), m_AutoFlush(other.m_AutoFlush)
+		{ 
+			if (other.m_StreamType == STREAM_TYPE::FILE) throw std::exception("Cannot make a copy of a logger which outputs to a file stream.");
+		}
+
+		// Flush and close file stream if open
 		~Logger()
 		{
 			if (m_FileStream.is_open())
+			{
+				m_FileStream.flush();
 				m_FileStream.close();
+			}
 		}
+
+		// Public Methods
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist)
 		template<typename ...T>
@@ -82,8 +98,12 @@ namespace sbl
 		inline void WriteLine(const std::string&& message, const T&& ...t);
 
 	private:
+		// Private members
 		STREAM_TYPE m_StreamType;
 		std::fstream m_FileStream;
+		bool m_AutoFlush;
+
+		// Private methods
 
 		// Converts a T value to a string to be used in writing a log
 		template<typename T>
@@ -149,10 +169,10 @@ namespace sbl
 	{
 		switch (m_StreamType)
 		{
-		case STREAM_TYPE::STDERR:   std::cerr << str;       break;
-		case STREAM_TYPE::STDLOG:   std::clog << str;       break;      
-		case STREAM_TYPE::FILE:     m_FileStream << str;    break;
-		default:                    std::cout << str;       break;
+		case STREAM_TYPE::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
+		case STREAM_TYPE::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
+		case STREAM_TYPE::FILE:     m_FileStream << str;    if (m_AutoFlush) m_FileStream.flush();    break;
+		default:                    std::cout << str;       if (m_AutoFlush) std::cout.flush();       break;
 		}
 	}
 }
