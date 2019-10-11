@@ -16,7 +16,7 @@
 #elif SBLOGGER_OS9
 #define NEWLINE '\r'
 #else
-#define NEWLINE '\r\n';
+#define NEWLINE "\r\n"
 #endif
 
 namespace sblogger
@@ -220,7 +220,7 @@ namespace sblogger
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default auto flush is set to true
-		FileLogger(const char* filePath) : Logger(true)
+		FileLogger(const char* filePath, bool autoFlush = true) : Logger(autoFlush)
 		{
 			if (filePath == nullptr || filePath[0] == '\0') throw std::exception("File path cannot be null or empty");
 
@@ -232,7 +232,7 @@ namespace sblogger
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default auto flush is set to true
-		FileLogger(const std::string& filePath) : Logger(true)
+		FileLogger(const std::string& filePath, bool autoFlush = true) : Logger(autoFlush)
 		{
 			if (filePath.empty() || filePath == " ") throw std::exception("File path cannot be null or empty");
 
@@ -244,7 +244,7 @@ namespace sblogger
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default auto flush is set to true
-		FileLogger(const std::string&& filePath) : Logger(true)
+		FileLogger(const std::string&& filePath, bool autoFlush = true) : Logger(autoFlush)
 		{
 			if (filePath.empty() || filePath == " ") throw std::exception("File path cannot be null or empty");
 
