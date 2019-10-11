@@ -5,9 +5,9 @@ int main()
 	std::string tmp = "Hello {0}";
 
 	// Declarations
-	sbl::Logger l;
-	sbl::logger logErr(sbl::STREAM_TYPE::STDERR);
-	sbl::logger logLog(sbl::STREAM_TYPE::STDLOG);
+	sblogger::Logger l;
+	sblogger::logger logErr(sblogger::STREAM_TYPE::STDERR);
+	sblogger::logger logLog(sblogger::STREAM_TYPE::STDLOG);
 
 	// Basic calls
 	l.WriteLine(tmp, "World");

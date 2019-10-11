@@ -10,67 +10,273 @@
 #include <vector>
 #include <regex>
 
-namespace sbl
+// Cross-platform macros
+#ifdef SBLOGGER_UNIX
+#define NEWLINE '\n'
+#elif SBLOGGER_OS9
+#define NEWLINE '\r'
+#else
+#define NEWLINE '\r\n';
+#endif
+
+namespace sblogger
 {
-	// Logger declaration
+	// Loggers' declaration
+
+	// Basic Logger
+	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	class Logger;
+	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	using logger = Logger;
+
+	// File Logger
+	// Used to log messages to a file stream
+	class FileLogger;
+	// Used to log messages to a file stream
+	using filelogger = FileLogger;
+	// Used to log messages to a file stream
+	using file_logger = FileLogger;
 
 	// Stream types to be used by a Logger instance
 	enum class STREAM_TYPE
 	{
-		STDOUT, STDERR, STDLOG, FILE
+		STDOUT, STDERR, STDLOG
 	};
 	using stream_type = STREAM_TYPE;
 
-	// Logger class: The main part of the library, used to log messages to a stream (ex.: STDOUT, STDERR, file etc.)
+	// Classes' Definitions
+
+	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	class Logger
 	{
+	protected:
+		// Protected members
+		STREAM_TYPE m_StreamType;
+		bool m_AutoFlush;
+
+		// Protected methods
+
+		// Converts a T value to a string to be used in writing a log
+		template<typename T>
+		inline std::string stringConvert(const T& t);
+
+		// Replace all "{n}" placeholders with their respective values (n=0,...)
+		inline std::string replacePlaceholders(std::string message, std::vector<std::string>& items);
+
+		// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
+		virtual inline void writeToStream(const std::string&& str);
+
 	public:
 		// Constructors and destructors
 
-		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE (except STREAM_TYPE::FILE)
-		// Defaults to STREAM_TYPE::STDOUT and no auto flush
-		Logger(STREAM_TYPE type = STREAM_TYPE::STDOUT)
-			: m_StreamType(type), m_AutoFlush(false)
+		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
+		// By default uses STREAM_TYPE::STDOUT and no auto flush
+		Logger(STREAM_TYPE type = STREAM_TYPE::STDOUT, bool autoFlush = false)
+			: m_StreamType(type), m_AutoFlush(autoFlush)
+		{ }
+
+		// Creates an instance of Logger which outputs to STDOUT and auto flushes based on the parameter "autoFlush"
+		Logger(bool autoFlush)
+			: m_StreamType(STREAM_TYPE::STDOUT), m_AutoFlush(autoFlush)
+		{ }
+
+		// Copy constructor
+		// Creates a Logger instance from an already existing one
+		Logger(const Logger& other)
+			: m_StreamType(other.m_StreamType), m_AutoFlush(other.m_AutoFlush)
+		{ }
+
+		// Move constructor
+		// Creates a Logger instance from another
+		Logger(Logger&& other) noexcept
 		{
-			if (m_StreamType == STREAM_TYPE::FILE) throw std::exception("Cannot make logger with STREAM_TYPE::FILE with no file provided.");
+			m_AutoFlush = other.m_AutoFlush;
+			m_StreamType = other.m_StreamType;
 		}
 
-		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE (except STREAM_TYPE::FILE)
-		// By default auto flush is turned on
-		Logger(const char* filepath, bool autoFlush = true)
-			: m_StreamType(STREAM_TYPE::FILE), m_AutoFlush(autoFlush)
-		{
-			if (!filepath || strlen(filepath) < 1 || *filepath == 0) throw std::exception("No file path provided. Cannot create output stream.");
-
-			m_FileStream.open(filepath);
-			if (!m_FileStream.is_open()) throw std::exception("Cannot open file to output to.");
+		// Destructor
+		// Flush stream before deletion
+		~Logger()
+		{ 
+			switch (m_StreamType)
+			{
+			case STREAM_TYPE::STDERR:   std::cerr.flush();       break;
+			case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
+			case STREAM_TYPE::STDOUT:   std::cout.flush();       break;
+			}
 		}
 
-		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE (except STREAM_TYPE::FILE)
-		// By default auto flush is turned on
-		Logger(const std::string& filepath, bool autoFlush = true)
-			: m_StreamType(STREAM_TYPE::FILE), m_AutoFlush(autoFlush)
-		{
-			if (filepath.empty() 
-				|| filepath.size() < 1 
-				|| std::regex_match(filepath, std::regex(R"(^[ ]+$/g)"))) 
-				throw std::exception("No file path provided. Cannot create output stream.");
+		// Public Methods
 
-			m_FileStream.open(filepath);
-			if (!m_FileStream.is_open()) throw std::exception("Cannot open file to output to.");
+		// Writes to the stream a message and inserts values into placeholders (should they exist)
+		template<typename ...T>
+		inline void Write(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist)
+		template<typename ...T>
+		inline void Write(const std::string&& message, const T&& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
+		template<typename ...T>
+		inline void WriteLine(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
+		template<typename ...T>
+		inline void WriteLine(const std::string&& message, const T&& ...t);
+
+		// Flush appropriate stream
+		virtual void Flush();
+	};
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist)
+	template<typename ...T>
+	inline void Logger::Write(const std::string& message, const T& ...t)
+	{
+		std::vector<std::string> printValues { stringConvert(t)... };
+		writeToStream(replacePlaceholders(message, printValues));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist)
+	template<typename ...T>
+	inline void Logger::Write(const std::string&& message, const T&& ...t)
+	{
+		std::vector<std::string> printValues{ stringConvert(t)... };
+		writeToStream(replacePlaceholders(message, printValues));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
+	template<typename ...T>
+	inline void Logger::WriteLine(const std::string& message, const T& ...t)
+	{
+		std::vector<std::string> printValues{ stringConvert(t)... };
+		writeToStream(replacePlaceholders(message, printValues) + NEWLINE);
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
+	template<typename ...T>
+	inline void Logger::WriteLine(const std::string&& message, const T&& ...t)
+	{
+		std::vector<std::string> printValues{ stringConvert(t)... };
+		writeToStream(replacePlaceholders(message, printValues) + NEWLINE);
+	}
+
+	template<typename T>
+	inline std::string Logger::stringConvert(const T& t)
+	{
+		std::stringstream ss;
+		ss << t;
+		return ss.str();
+	}
+
+	inline std::string sblogger::Logger::replacePlaceholders(std::string message, std::vector<std::string>& items)
+	{
+		std::regex placeholder;
+
+		for (unsigned int i = 0; i < items.size(); i++)
+		{
+			placeholder = R"(\{)" + std::to_string(i) + R"(\})";
+			message = std::regex_replace(message, placeholder, items[i]);
+		}
+
+		return message;
+	}
+
+	inline void Logger::writeToStream(const std::string&& str)
+	{
+		switch (m_StreamType)
+		{
+		case STREAM_TYPE::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
+		case STREAM_TYPE::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
+		default:                    std::cout << str;       if (m_AutoFlush) std::cout.flush();       break;
+		}
+	}
+
+	// Flush appropriate stream
+	void Logger::Flush()
+	{
+		switch (m_StreamType)
+		{
+		case STREAM_TYPE::STDERR:   std::cerr.flush();       break;
+		case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
+		default:                    std::cout.flush();       break;
+		}
+	}
+
+	// Used to log messages to a file stream
+	class FileLogger : public Logger
+	{
+		// Private members
+		std::string m_FilePath;
+		std::fstream m_FileStream;
+
+		// Writes string to file stream and flush if auto flush is set
+		inline void writeToStream(const std::string&& str) override;
+
+	public:
+		// Constructors
+
+		// Deleted to prevent usage without providing a file path
+		FileLogger() = delete;
+
+		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// By default auto flush is set to true
+		FileLogger(const char* filePath) : Logger(true)
+		{
+			if (filePath == nullptr || filePath[0] == '\0') throw std::exception("File path cannot be null or empty");
+
+			m_FilePath = std::string(filePath);
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + std::string(filePath) + '.').c_str());
+		}
+
+		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// By default auto flush is set to true
+		FileLogger(const std::string& filePath) : Logger(true)
+		{
+			if (filePath.empty() || filePath == " ") throw std::exception("File path cannot be null or empty");
+
+			m_FilePath = filePath;
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + filePath + '.').c_str());
+		}
+
+		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// By default auto flush is set to true
+		FileLogger(const std::string&& filePath) : Logger(true)
+		{
+			if (filePath.empty() || filePath == " ") throw std::exception("File path cannot be null or empty");
+
+			m_FilePath = filePath;
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + filePath + '.').c_str());
 		}
 
 		// Copy constructor
-		Logger(const Logger& other)
-			: m_StreamType(other.m_StreamType), m_AutoFlush(other.m_AutoFlush)
-		{ 
-			if (other.m_StreamType == STREAM_TYPE::FILE) throw std::exception("Cannot make a copy of a logger which outputs to a file stream.");
+		// Creates a FileLogger instance from an already existing one
+		FileLogger(const FileLogger& other)
+		{
+			if (other.m_FilePath.empty() || other.m_FilePath == " ") throw std::exception("File path cannot be null or empty");
+
+			m_FilePath = other.m_FilePath;
+			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
+
+			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + other.m_FilePath + '.').c_str());
 		}
 
-		// Flush and close file stream if open
-		~Logger()
+		// Move constructor
+		// Creates a FileLogger instance from another one
+		FileLogger(FileLogger&& other) noexcept
+		{
+			m_FilePath = std::move(other.m_FilePath);
+			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
+		}
+
+		// Destructor
+		// Flush and close stream if open
+		~FileLogger()
 		{
 			if (m_FileStream.is_open())
 			{
@@ -97,83 +303,54 @@ namespace sbl
 		template<typename ...T>
 		inline void WriteLine(const std::string&& message, const T&& ...t);
 
-	private:
-		// Private members
-		STREAM_TYPE m_StreamType;
-		std::fstream m_FileStream;
-		bool m_AutoFlush;
-
-		// Private methods
-
-		// Converts a T value to a string to be used in writing a log
-		template<typename T>
-		inline std::string stringConvert(const T& t);
-
-		// Replace all "{n}" placeholders with their respective values (n=0,...)
-		inline std::string replacePlaceholders(std::string message, std::vector<std::string>& items);
-
-		// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
-		inline void writeToStream(const std::string&& str);
+		// Flush file stream
+		void Flush() override;
 	};
 
+	// Writes to the stream a message and inserts values into placeholders (should they exist)
 	template<typename ...T>
-	inline void Logger::Write(const std::string& message, const T& ...t)
-	{
-		std::vector<std::string> printValues { stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues));
-	}
-
-	template<typename ...T>
-	inline void Logger::Write(const std::string&& message, const T&& ...t)
+	inline void FileLogger::Write(const std::string& message, const T& ...t)
 	{
 		std::vector<std::string> printValues{ stringConvert(t)... };
 		writeToStream(replacePlaceholders(message, printValues));
 	}
 
+	// Writes to the stream a message and inserts values into placeholders (should they exist)
 	template<typename ...T>
-	inline void Logger::WriteLine(const std::string& message, const T& ...t)
+	inline void FileLogger::Write(const std::string&& message, const T&& ...t)
 	{
 		std::vector<std::string> printValues{ stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues) + "\n");
+		writeToStream(replacePlaceholders(message, printValues));
 	}
 
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
 	template<typename ...T>
-	inline void Logger::WriteLine(const std::string&& message, const T&& ...t)
+	inline void FileLogger::WriteLine(const std::string& message, const T& ...t)
 	{
 		std::vector<std::string> printValues{ stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues) + "\n");
+		writeToStream(replacePlaceholders(message, printValues) + NEWLINE);
 	}
 
-	template<typename T>
-	inline std::string Logger::stringConvert(const T& t)
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
+	template<typename ...T>
+	inline void FileLogger::WriteLine(const std::string&& message, const T&& ...t)
 	{
-		std::stringstream ss;
-		ss << t;
-		return ss.str();
+		std::vector<std::string> printValues{ stringConvert(t)... };
+		writeToStream(replacePlaceholders(message, printValues) + NEWLINE);
 	}
 
-	inline std::string sbl::Logger::replacePlaceholders(std::string message, std::vector<std::string>& items)
+	// Writes string to file stream and flush if auto flush is set
+	inline void FileLogger::writeToStream(const std::string&& str)
 	{
-		std::regex placeholder;
-
-		for (int i = 0; i < items.size(); i++)
-		{
-			placeholder = R"(\{)" + std::to_string(i) + R"(\})";
-			message = std::regex_replace(message, placeholder, items[i]);
-		}
-
-		return message;
+		m_FileStream << str;
+		if (m_AutoFlush)
+			m_FileStream.flush();
 	}
 
-	inline void Logger::writeToStream(const std::string&& str)
+	// Flush file stream
+	inline void FileLogger::Flush()
 	{
-		switch (m_StreamType)
-		{
-		case STREAM_TYPE::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
-		case STREAM_TYPE::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
-		case STREAM_TYPE::FILE:     m_FileStream << str;    if (m_AutoFlush) m_FileStream.flush();    break;
-		default:                    std::cout << str;       if (m_AutoFlush) std::cout.flush();       break;
-		}
+		m_FileStream.flush();
 	}
 }
 #endif
