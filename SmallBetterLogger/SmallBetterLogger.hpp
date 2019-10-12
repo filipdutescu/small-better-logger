@@ -1,3 +1,27 @@
+/*
+MIT License
+
+Copyright (c) 2019 Filip Dutescu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #ifndef SMALL_BETTER_LOGGER_H
 #define SMALL_BETTER_LOGGER_H
 
@@ -18,6 +42,9 @@
 #else
 #define NEWLINE "\r\n"
 #endif
+
+// File Path Regex
+#define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+)))regex")
 
 namespace sblogger
 {
@@ -43,6 +70,58 @@ namespace sblogger
 		STDOUT, STDERR, STDLOG
 	};
 	using stream_type = STREAM_TYPE;
+
+	// Custom Exceptions
+
+	// Base Exception
+	class SBLoggerException : public std::exception
+	{
+	protected:
+		std::string m_Exception;
+		// Creates an exception with a given message
+		SBLoggerException(std::string& exception) 
+			: std::exception(exception.c_str()), m_Exception(exception)
+		{ }
+
+		// Creates an exception with a given message
+		SBLoggerException(std::string&& exception)
+			: std::exception(exception.c_str()), m_Exception(exception)
+		{ }
+
+		// Creates an exception with a given message
+		SBLoggerException(const char* exception)
+			: std::exception(exception), m_Exception(exception)
+		{ }
+
+	public:
+		// Throw exception
+		~SBLoggerException() throw() 
+		{ }
+
+		const char* What() const throw() { return m_Exception.c_str(); }
+	};
+
+	// Thrown when the given file path is null or empty
+	class NullOrEmptyPathException : public SBLoggerException
+	{
+	public:
+		NullOrEmptyPathException() : SBLoggerException("File path cannot be null or empty.")
+		{ }
+	};
+
+	// Thrown when the specified file could not be openned
+	class InvalidFilePathException : public SBLoggerException
+	{
+	public:
+		InvalidFilePathException() : SBLoggerException("Cannot open log file to write to.")
+		{ }
+
+		InvalidFilePathException(const std::string& filePath) : SBLoggerException("Cannot open log file " + filePath + '.')
+		{ }
+
+		InvalidFilePathException(const std::string&& filePath) : SBLoggerException("Cannot open log file " + filePath + '.')
+		{ }
+	};
 
 	// Classes' Definitions
 
@@ -222,48 +301,52 @@ namespace sblogger
 		// By default auto flush is set to true
 		FileLogger(const char* filePath, bool autoFlush = true) : Logger(autoFlush)
 		{
-			if (filePath == nullptr || filePath[0] == '\0') throw std::exception("File path cannot be null or empty");
+			if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
+			if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
 
 			m_FilePath = std::string(filePath);
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
-			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + std::string(filePath) + '.').c_str());
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default auto flush is set to true
 		FileLogger(const std::string& filePath, bool autoFlush = true) : Logger(autoFlush)
 		{
-			if (filePath.empty() || filePath == " ") throw std::exception("File path cannot be null or empty");
+			if (filePath.empty() || filePath == " ") throw NullOrEmptyPathException();
+			if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
 
 			m_FilePath = filePath;
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
-			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + filePath + '.').c_str());
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default auto flush is set to true
 		FileLogger(const std::string&& filePath, bool autoFlush = true) : Logger(autoFlush)
 		{
-			if (filePath.empty() || filePath == " ") throw std::exception("File path cannot be null or empty");
+			if (filePath.empty() || filePath == " ") throw NullOrEmptyPathException();
+			if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
 
 			m_FilePath = filePath;
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
-			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + filePath + '.').c_str());
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 		}
 
 		// Copy constructor
 		// Creates a FileLogger instance from an already existing one
 		FileLogger(const FileLogger& other)
 		{
-			if (other.m_FilePath.empty() || other.m_FilePath == " ") throw std::exception("File path cannot be null or empty");
+			if (other.m_FilePath.empty() || other.m_FilePath == " ") throw NullOrEmptyPathException();
+			if(!std::regex_match(other.m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
 
 			m_FilePath = other.m_FilePath;
+			
 			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
-
-			if (!m_FileStream.is_open()) throw std::exception(("Cannot open log file " + other.m_FilePath + '.').c_str());
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 		}
 
 		// Move constructor

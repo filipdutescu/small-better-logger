@@ -27,6 +27,15 @@ int main()
 		fileLogger.Write("Hello World!");
 	}
 
+	try
+	{
+		throw sblogger::InvalidFilePathException();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << '\n';
+	}
+
 	std::cin.get();
 	return 0;
 }
