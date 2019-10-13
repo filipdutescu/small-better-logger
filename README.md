@@ -18,16 +18,22 @@ For other projects, you need to compile it to either a ```.lib``` or a ```.dll``
 
 ## Usage
 All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
-  * **```sblogger::Logger```** (which writes to the standard streams)
+  * **```sblogger::StreamLogger```** (which writes to the standard streams)
   * **```sblogger::FileLogger```** (which writes to a file) 
 
-There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::Logger```, in order to specify STDOUT, STDERR or STDLOG. 
-> ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::logger```, ```sblogger::stream_types```).*
+There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. 
+> ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
-Both loggers have the following methods for printing messages:
+All loggers have the following methods for printing messages (inherited from ```sblogger::Logger```):
   * **```void Write(const std::string& message, const T& ...t)```** - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
   * **```void WriteLine(const std::string& message, const T& ...t)```** - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * **```int Indent()```** - increase indent by 1
+  * **```int Dedent()```** - decrease indent by 1
   * **```void Flush()```** - flushes the stream
+
+```sblogger::StreamLogger``` constains an additional method:
+  * **```void SetStreamType(STREAM_TYPE streamType)```** - change the current stream type to a different ```STREAM_TYPE```
+
 ```sblogger::FileLogger``` also contains an additional method:
   * **```void ClearLogs()```** - removes all content from the log file
 

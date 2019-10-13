@@ -352,6 +352,9 @@ namespace sblogger
 
 		// Flush appropriate stream
 		virtual inline void Flush() override;
+
+		// Change the logger's stream type (to a different "STREAM_TYPE")
+		inline void SetStreamType(STREAM_TYPE streamType);
 	};
 
 	inline void StreamLogger::writeToStream(const std::string&& str)
@@ -373,6 +376,12 @@ namespace sblogger
 		case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
 		default:                    std::cout.flush();       break;
 		}
+	}
+
+	// Change the logger's stream type (to a different "STREAM_TYPE")
+	inline void StreamLogger::SetStreamType(STREAM_TYPE streamType)
+	{
+		m_StreamType = streamType;
 	}
 
 	// Used to log messages to a file stream
