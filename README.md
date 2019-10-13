@@ -31,10 +31,10 @@ All loggers have the following methods for printing messages (inherited from ```
   * **```int Dedent()```** - decrease indent by 1
   * **```void Flush()```** - flushes the stream
 
-```sblogger::StreamLogger``` constains an additional method:
+**```sblogger::StreamLogger```** constains an additional method:
   * **```void SetStreamType(STREAM_TYPE streamType)```** - change the current stream type to a different ```STREAM_TYPE```
 
-```sblogger::FileLogger``` also contains an additional method:
+**```sblogger::FileLogger```** also contains an additional method:
   * **```void ClearLogs()```** - removes all content from the log file
 
 For more information regarding usage, please refer to the [Wiki](README.md) *(WIP)*.
