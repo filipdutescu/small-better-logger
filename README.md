@@ -44,7 +44,7 @@ For more information regarding usage, please refer to the [Wiki](README.md) *(WI
 In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
   * ```#define SBLOGGER_UNIX``` - for ***nix** systems and **Mac OS X+**
   * ```#define SBLOGGER_OS9``` - for **Mac OS 9 and lower**
-> ***Note:*** *There is no reason to define any macros for ***Windows***, as that is the default for this library.*
+> ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [SmallBetterLogger.hpp](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
