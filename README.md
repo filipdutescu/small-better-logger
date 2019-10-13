@@ -23,7 +23,7 @@ All the code which is related to the **SBL** is located in the ```sblogger``` na
 
 There is also an enum, ```STREAM_TYPES``` which is useful when logging with ```sblogger::Logger```, in order to specify STDOUT, STDERR or STDLOG. 
 
-All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::logger```, ```sblogger::stream_types```).
+> ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::logger```, ```sblogger::stream_types```).*
 
 Both loggers have the following methods for printing messages:
   * ```void Write(const std::string& message, const T& ...t)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
