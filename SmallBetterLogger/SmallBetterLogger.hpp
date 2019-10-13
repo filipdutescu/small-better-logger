@@ -29,6 +29,9 @@ SOFTWARE.
 #include <iostream>
 #include <fstream>
 
+// Used for truncating log files
+#include <filesystem>
+
 // Used for formatting and creating the output string
 #include <sstream>
 #include <vector>
@@ -204,7 +207,7 @@ namespace sblogger
 		inline void WriteLine(const std::string&& message, const T&& ...t);
 
 		// Flush appropriate stream
-		virtual void Flush();
+		virtual inline void Flush();
 	};
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist)
@@ -271,7 +274,7 @@ namespace sblogger
 	}
 
 	// Flush appropriate stream
-	void Logger::Flush()
+	inline void Logger::Flush()
 	{
 		switch (m_StreamType)
 		{
@@ -387,7 +390,10 @@ namespace sblogger
 		inline void WriteLine(const std::string&& message, const T&& ...t);
 
 		// Flush file stream
-		void Flush() override;
+		inline void Flush() override;
+
+		// Clear log file
+		inline void ClearLogs();
 	};
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist)
@@ -434,6 +440,13 @@ namespace sblogger
 	inline void FileLogger::Flush()
 	{
 		m_FileStream.flush();
+	}
+
+	// Clear log file
+	inline void FileLogger::ClearLogs()
+	{
+		std::filesystem::resize_file(m_FilePath, 0);
+		m_FileStream.seekp(0);
 	}
 }
 #endif

@@ -23,6 +23,7 @@ int main()
 		sblogger::FileLogger fileLogger("example.log");
 
 		// Basic calls (FileLogger)
+		fileLogger.ClearLogs();
 		fileLogger.WriteLine("This is a test.");
 		fileLogger.Write("Hello World!");
 	}
