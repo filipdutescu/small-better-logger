@@ -12,7 +12,9 @@ int main()
 
 
 	// Basic calls (Logger)
+	l.Indent();
 	l.WriteLine(tmp, "World");
+	l.Dedent();
 	l.Write("I am {0} and {1} years old.{2} {0}", "Michael", 28);
 	l.Write("{0}", "\n", "hey");
 
@@ -26,6 +28,7 @@ int main()
 		// Basic calls (FileLogger)
 		fileLogger.ClearLogs();
 		fileLogger.WriteLine("This is a test.");
+		fileLogger.Indent();
 		fileLogger.Write("Hello World!");
 	}
 
