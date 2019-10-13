@@ -6,7 +6,7 @@ A small, better logger for C++ (and any project that wishes to use it as .dll)
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library (```.lib``` or ```.dll```).
 
 ### Including as Source Code
-All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the ```SmallBetterLogger.hpp``` file to your project and added as a header file in your code:
+All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
@@ -47,7 +47,7 @@ In order for **SBLogger** to work properly outside of **MS Windows**, you should
 > ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [SmallBetterLogger.hpp](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
 
 ## Acknowledgments
   * [@eugencutic](http://github.com/eugencutic) - Special thanks for code reviews and advice
