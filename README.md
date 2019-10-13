@@ -20,7 +20,9 @@ For other projects, you need to compile it to either a ```.lib``` or a ```.dll``
 All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
   * ```sblogger::Logger``` (which writes to the standard streams)
   * ```sblogger::FileLogger``` (which writes to a file) 
+
 There is also an enum, ```STREAM_TYPES``` which is useful when logging with ```sblogger::Logger```, in order to specify STDOUT, STDERR or STDLOG. 
+
 All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::logger```, ```sblogger::stream_types```).
 
 Both loggers have the following methods for printing messages:
