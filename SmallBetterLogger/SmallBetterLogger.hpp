@@ -322,12 +322,14 @@ namespace sblogger
 		{ }
 
 		// Copy constructor
+
 		// Creates a Logger instance from an already existing one
 		StreamLogger(const StreamLogger& other)
 			: Logger(other), m_StreamType(other.m_StreamType)
 		{ }
 
 		// Move constructor
+
 		// Creates a Logger instance from another
 		StreamLogger(StreamLogger&& other) noexcept
 			: Logger(other)
@@ -337,6 +339,7 @@ namespace sblogger
 		}
 
 		// Destructor
+		
 		// Flush stream before deletion
 		~StreamLogger()
 		{ 
@@ -346,6 +349,22 @@ namespace sblogger
 			case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
 			case STREAM_TYPE::STDOUT:   std::cout.flush();       break;
 			}
+		}
+
+		// Overloaded Operators
+
+		// Assignment Operator
+		StreamLogger& operator=(const StreamLogger& other) noexcept
+		{
+			if (this != &other)
+			{
+				m_AutoFlush = other.m_AutoFlush;
+				m_Format = other.m_Format;
+				m_IndentCount = other.m_IndentCount;
+				m_StreamType = other.m_StreamType;
+			}
+
+			return *this;
 		}
 
 		// Public Methods
@@ -406,7 +425,8 @@ namespace sblogger
 			: Logger(format, autoFlush)
 		{
 			if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
-			if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
+			//if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
+			if(!std::filesystem::directory_entry(std::filesystem::path(filePath)).exists()) throw InvalidFilePathException(filePath);
 
 			m_FilePath = std::string(filePath);
 
@@ -420,12 +440,13 @@ namespace sblogger
 			: Logger(format, autoFlush)
 		{
 			if (filePath.empty() || filePath == " ") throw NullOrEmptyPathException();
-			if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
+			//if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
+			if (!std::filesystem::directory_entry(std::filesystem::path(filePath)).exists()) throw InvalidFilePathException(filePath);
 
 			m_FilePath = filePath;
 
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+			//m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			//if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
@@ -434,12 +455,13 @@ namespace sblogger
 			: Logger(format, autoFlush)
 		{
 			if (filePath.empty() || filePath == " ") throw NullOrEmptyPathException();
-			if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
+			//if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
+			if (!std::filesystem::directory_entry(std::filesystem::path(filePath)).exists()) throw InvalidFilePathException(filePath);
 
 			m_FilePath = filePath;
 
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+			//m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			//if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 		}
 
 		// Copy constructor
@@ -457,6 +479,7 @@ namespace sblogger
 		}
 
 		// Move constructor
+
 		// Creates a FileLogger instance from another one
 		FileLogger(FileLogger&& other) noexcept
 			: Logger(other)
@@ -466,6 +489,7 @@ namespace sblogger
 		}
 
 		// Destructor
+
 		// Flush and close stream if open
 		~FileLogger()
 		{
@@ -474,6 +498,22 @@ namespace sblogger
 				m_FileStream.flush();
 				m_FileStream.close();
 			}
+		}
+
+		// Overloaded Operators
+
+		// Assignment Operator
+		FileLogger& operator=(const FileLogger& other) noexcept
+		{
+			if (this != &other)
+			{
+				//if (other.m_FilePath) throw InvalidFilePathException(other.m_FilePath);
+				m_AutoFlush = other.m_AutoFlush;
+				m_Format = other.m_Format;
+				m_IndentCount = other.m_IndentCount;
+			}
+
+			return *this;
 		}
 
 		// Public Methods
@@ -488,9 +528,14 @@ namespace sblogger
 	// Writes string to file stream and flush if auto flush is set
 	inline void FileLogger::writeToStream(const std::string&& str)
 	{
-		m_FileStream << str;
-		if (m_AutoFlush)
-			m_FileStream.flush();
+		if (!m_FileStream.is_open())
+			std::cerr << "The file stream " + m_FilePath + " is not opened.";
+		else
+		{
+			m_FileStream << str;
+			if (m_AutoFlush)
+				m_FileStream.flush();
+		}
 	}
 
 	// Flush file stream

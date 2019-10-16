@@ -1,3 +1,6 @@
+#include <iostream>
+#include <string>
+
 #include "SmallBetterLogger.hpp"
 
 int main()
@@ -24,6 +27,7 @@ int main()
 	{
 		// Declarations (FileLogger)
 		sblogger::FileLogger fileLogger("example.log", "[File Log]");
+		sblogger::FileLogger fileLogger2("//smth.h", "[File Log]");
 
 		// Basic calls (FileLogger)
 		fileLogger.ClearLogs();
@@ -34,5 +38,6 @@ int main()
 
 	delete logLog;
 	std::cin.get();
+
 	return 0;
 }
