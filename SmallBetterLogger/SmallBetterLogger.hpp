@@ -46,9 +46,6 @@ SOFTWARE.
 #define NEWLINE "\r\n"
 #endif
 
-// File Path Regex
-#define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex")
-
 namespace sblogger
 {
 	// Loggers' declaration
@@ -114,6 +111,14 @@ namespace sblogger
 	{
 	public:
 		NullOrEmptyPathException() : SBLoggerException("File path cannot be null or empty.")
+		{ }
+	};
+
+	// Thrown when the given file name is null or whitespace
+	class NullOrWhitespaceNameException : public SBLoggerException
+	{
+	public:
+		NullOrWhitespaceNameException() : SBLoggerException("File name cannot be null or whitespace.")
 		{ }
 	};
 
@@ -407,7 +412,7 @@ namespace sblogger
 	class FileLogger : public Logger
 	{
 		// Private members
-		std::string m_FilePath;
+		std::filesystem::path m_FilePath;
 		std::fstream m_FileStream;
 
 		// Writes string to file stream and flush if auto flush is set
@@ -425,13 +430,15 @@ namespace sblogger
 			: Logger(format, autoFlush)
 		{
 			if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
-			//if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
-			if(!std::filesystem::directory_entry(std::filesystem::path(filePath)).exists()) throw InvalidFilePathException(filePath);
 
-			m_FilePath = std::string(filePath);
+			m_FilePath = std::filesystem::path(filePath);
+			// Check file path for null, empty, inexistent or whitespace only paths and filenames
+			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+			if(!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
 
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
@@ -439,14 +446,15 @@ namespace sblogger
 		FileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true) 
 			: Logger(format, autoFlush)
 		{
-			if (filePath.empty() || filePath == " ") throw NullOrEmptyPathException();
-			//if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
-			if (!std::filesystem::directory_entry(std::filesystem::path(filePath)).exists()) throw InvalidFilePathException(filePath);
+			m_FilePath = std::filesystem::path(filePath);
 
-			m_FilePath = filePath;
+			// Check file path for null, empty, inexistent or whitespace only paths and filenames
+			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
 
-			//m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-			//if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
@@ -454,14 +462,15 @@ namespace sblogger
 		FileLogger(const std::string&& filePath, const std::string& format = std::string(), bool autoFlush = true) 
 			: Logger(format, autoFlush)
 		{
-			if (filePath.empty() || filePath == " ") throw NullOrEmptyPathException();
-			//if (!std::regex_match(filePath, FILE_PATH_REGEX)) throw InvalidFilePathException(filePath);
-			if (!std::filesystem::directory_entry(std::filesystem::path(filePath)).exists()) throw InvalidFilePathException(filePath);
+			m_FilePath = std::filesystem::path(filePath);
 
-			m_FilePath = filePath;
+			// Check file path for null, empty, inexistent or whitespace only paths and filenames
+			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
 
-			//m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-			//if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
 		}
 
 		// Copy constructor
@@ -469,13 +478,15 @@ namespace sblogger
 		FileLogger(const FileLogger& other)
 			: Logger(other)
 		{
-			if (other.m_FilePath.empty() || other.m_FilePath == " ") throw NullOrEmptyPathException();
-			if(!std::regex_match(other.m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
+			// Check file path for null, empty, inexistent or whitespace only paths and filenames
+			if (!other.m_FilePath.has_filename() || !other.m_FilePath.has_extension()) throw NullOrEmptyPathException();
+			if (other.m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+			if (!std::filesystem::directory_entry(other.m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
 
 			m_FilePath = other.m_FilePath;
 			
 			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
 		}
 
 		// Move constructor
@@ -507,7 +518,11 @@ namespace sblogger
 		{
 			if (this != &other)
 			{
-				//if (other.m_FilePath) throw InvalidFilePathException(other.m_FilePath);
+				// Check file path for null, empty, inexistent or whitespace only paths and filenames
+				if (!other.m_FilePath.has_filename() || !other.m_FilePath.has_extension()) throw NullOrEmptyPathException();
+				if (other.m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+				if (!std::filesystem::directory_entry(other.m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
+				
 				m_AutoFlush = other.m_AutoFlush;
 				m_Format = other.m_Format;
 				m_IndentCount = other.m_IndentCount;
@@ -529,11 +544,11 @@ namespace sblogger
 	inline void FileLogger::writeToStream(const std::string&& str)
 	{
 		if (!m_FileStream.is_open())
-			std::cerr << "The file stream " + m_FilePath + " is not opened.";
+			std::cerr << "The file stream " + m_FilePath.string() + " is not opened.";
 		else
 		{
 			m_FileStream << str;
-			if (m_AutoFlush)
+			if (m_AutoFlush) 
 				m_FileStream.flush();
 		}
 	}
