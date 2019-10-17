@@ -5,6 +5,9 @@ A small, better logger for C++ (and any project that wishes to use it as .dll)
 ## Getting Started
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library (```.lib``` or ```.dll```).
 
+### Prerequisites
+**IMPORTANT**: In order to use this library, you will need to compile using a **C++17 (or later)** compiler.
+
 ### Including as Source Code
 All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
 ````cpp
@@ -38,6 +41,44 @@ All loggers have the following methods for printing messages (inherited from ```
   * **```void ClearLogs()```** - removes all content from the log file
 
 For more information regarding usage, please refer to the [Wiki](README.md) *(WIP)*.
+
+### Examples
+The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:
+````cpp
+...
+  sblogger::StreamLogger logger;
+  ...
+	logger.WriteLine("Hello");
+	logger.Write("{0}!", "World");
+...
+````
+or if you wanted to write to a file:
+````cpp
+...
+  sblogger::FileLogger logger("mylog.log");
+  ...
+	logger.WriteLine("Hello");
+	logger.Write("{0}!", "World");
+...
+````
+
+If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```, as follows:
+````cpp
+...
+  sblogger::StreamLogger logger("[MyLogFormat]");
+  ...
+  logger.Indent();
+	logger.WriteLine("Hello World,");
+  logger.Dedent();
+	logger.Write("This is my logger!");
+...
+````
+Output:
+````
+    Hello World,
+This is my logger!
+````
+
 > ***Note:*** *You can find basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
 
 ## Cross-Platform Info

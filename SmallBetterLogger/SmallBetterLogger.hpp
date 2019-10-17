@@ -193,6 +193,9 @@ namespace sblogger
 
 		// Public Methods
 
+		// Writes to the stream the newline character
+		inline void WriteLine();
+
 		// Writes to the stream a message and inserts values into placeholders (should they exist)
 		template<typename ...T>
 		inline void Write(const std::string& message, const T& ...t);
@@ -226,6 +229,12 @@ namespace sblogger
 		std::stringstream ss;
 		ss << t;
 		return ss.str();
+	}
+
+	// Writes to the stream the newline character
+	inline void Logger::WriteLine()
+	{
+		writeToStream(m_Format + NEWLINE);
 	}
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist)
@@ -318,6 +327,11 @@ namespace sblogger
 
 		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
 		StreamLogger(const std::string& format, bool autoFlush = false)
+			: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+		{ }
+
+		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
+		StreamLogger(const std::string&& format, bool autoFlush = false)
 			: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
 		{ }
 
