@@ -29,8 +29,11 @@ SOFTWARE.
 #include <iostream>
 #include <fstream>
 
+// For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
+#ifndef LEGACY
 // Used for truncating log files
 #include <filesystem>
+#endif
 
 // Used for formatting and creating the output string
 #include <sstream>
@@ -38,7 +41,7 @@ SOFTWARE.
 #include <regex>
 
 // Cross-platform macros
-#ifdef SBLOGGER_UNIX
+#ifdef SBLOGGER_NIX
 #define NEWLINE '\n'
 #elif SBLOGGER_OS9
 #define NEWLINE '\r'

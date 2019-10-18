@@ -6,7 +6,7 @@ A small, better logger for C++ (and any project that wishes to use it as .dll)
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library (```.lib``` or ```.dll```).
 
 ### Prerequisites
-In order to use this library, you will need to compile using a **C++17 (or later)** compiler.
+In order to use this library, you will need to compile using a **C++17 (or later)** compiler. For compilers pre **C++17** (C++11 or C++14), please refer to [Setting Up](README.md#Setting-Up).
 
 ### Including as Source Code
 All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
@@ -19,11 +19,25 @@ All you need to do if you wish to use **SBLogger** (in a C++ project) is to clon
 ### Including as Library (WIP)
 For other projects, you need to compile it to either a ```.lib``` or a ```.dll``` library and link it in the compiler specific way of your prefered language.
 
+### Setting Up
+
+#### Using Older C++ Standards
+If you are using a pre **C++17**(C++11 or C++14) compiler, you can define the macro ```LEGACY```, in order to use this library. Please define it either before including **SBLogger** or on the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as such:
+````cpp
+#define LEGACY
+````
+> ***Note:*** *The library assumes by default, that you are using a C++17 compiler. In that case, no macros need to be defined.*
+
+#### Cross-Platform Info
+In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
+  * ```#define SBLOGGER_NIX``` - for **Unix/Linux** and **Mac OS X+**
+  * ```#define SBLOGGER_OS9``` - for **Mac OS 9 and lower**
+> ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
+
 ## Usage
 All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
   * **```sblogger::StreamLogger```** (which writes to the standard streams)
   * **```sblogger::FileLogger```** (which writes to a file) 
-
 
 There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. 
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
@@ -94,12 +108,6 @@ This is my logger!
 ````
 
 > ***Note:*** *You can find basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
-
-## Cross-Platform Info
-In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
-  * ```#define SBLOGGER_UNIX``` - for ***nix** systems and **Mac OS X+**
-  * ```#define SBLOGGER_OS9``` - for **Mac OS 9 and lower**
-> ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
