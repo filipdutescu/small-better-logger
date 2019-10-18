@@ -1,12 +1,12 @@
 # Small, Better Logger
-A small, better logger for C++ (and any project that wishes to use it as .dll) 
-> ***Note:*** *From now on, I will refer to this library as ***SBLogger***.*
+A small, better logger for C++ (and any project that wishes to use it as ```.lib```/```.dll```) 
 
 ## Getting Started
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library (```.lib``` or ```.dll```).
+> ***Note:*** *From now on, I will refer to this library as ***SBLogger***.*
 
 ### Prerequisites
-In order to use this library, you will need to compile using a **C++17 (or later)** compiler. For compilers pre **C++17** (C++11 or C++14), please refer to [Setting Up](README.md#Setting-Up).
+In order to use this library, you will need to compile using a **C++17 (or later)** compiler. For compilers pre **C++17** (**C++11** or **C++14**), please refer to [Setting Up](README.md#Setting-Up).
 
 ### Including as Source Code
 All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
@@ -22,9 +22,9 @@ For other projects, you need to compile it to either a ```.lib``` or a ```.dll``
 ### Setting Up
 
 #### Using Older C++ Standards
-If you are using a pre **C++17**(C++11 or C++14) compiler, you can define the macro ```LEGACY```, in order to use this library. Please define it either before including **SBLogger** or on the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as such:
+If you are using a pre **C++17** (**C++11** or **C++14**) compiler, you can define the macro ```SBLOGGER_LEGACY```, in order to use this library. Please define it either before including **SBLogger** or on the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as such:
 ````cpp
-#define LEGACY
+#define SBLOGGER_LEGACY
 ````
 > ***Note:*** *The library assumes by default, that you are using a C++17 compiler. In that case, no macros need to be defined.*
 
@@ -56,7 +56,7 @@ All loggers have the following methods for printing messages (inherited from ```
 **```sblogger::FileLogger```** also contains an additional method:
   * **```void ClearLogs()```** - removes all content from the log file
 
-For more information regarding usage, please refer to the [Wiki](README.md) *(WIP)*.
+For more information regarding usage, please refer to the [Wiki](small-better-logger/wiki) *(WIP)*.
 
 ### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:

@@ -25,14 +25,24 @@ SOFTWARE.
 #ifndef SMALL_BETTER_LOGGER_H
 #define SMALL_BETTER_LOGGER_H
 
+#define SBLOGGER_OLD_DATES // For formatting dates to string pre C++20
+
 // Used for writing to output stream
 #include <iostream>
 #include <fstream>
 
-// For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
-#ifndef LEGACY
+// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
+#ifndef SBLOGGER_LEGACY
 // Used for truncating log files
 #include <filesystem>
+#endif
+
+// For formatting dates to string pre C++20
+#ifndef SBLOGGER_OLD_DATES
+#include <chrono>
+#else
+#include <iomanip>
+#include <ctime>
 #endif
 
 // Used for formatting and creating the output string
@@ -50,7 +60,7 @@ SOFTWARE.
 #endif
 
 // For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
-#ifdef LEGACY
+#ifdef SBLOGGER_LEGACY
 // File Path Regex
 #define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex")
 #endif
@@ -435,7 +445,7 @@ namespace sblogger
 	class FileLogger : public Logger
 	{
 		// Private members
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 		std::string m_FilePath;
 #else
 		std::filesystem::path m_FilePath;
@@ -458,7 +468,7 @@ namespace sblogger
 		{
 			if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
 
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = filePath;
 			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
@@ -470,7 +480,7 @@ namespace sblogger
 #endif
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
@@ -482,7 +492,7 @@ namespace sblogger
 		FileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true) 
 			: Logger(format, autoFlush)
 		{
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = filePath;
 			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
@@ -494,7 +504,7 @@ namespace sblogger
 #endif
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
@@ -506,7 +516,7 @@ namespace sblogger
 		FileLogger(const std::string&& filePath, const std::string& format = std::string(), bool autoFlush = true) 
 			: Logger(format, autoFlush)
 		{
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = filePath;
 			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
@@ -518,7 +528,7 @@ namespace sblogger
 #endif
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
@@ -530,7 +540,7 @@ namespace sblogger
 		FileLogger(const FileLogger& other)
 			: Logger(other)
 		{
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = other.m_FilePath;
 			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
@@ -542,7 +552,7 @@ namespace sblogger
 #endif
 			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
 
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
@@ -574,11 +584,11 @@ namespace sblogger
 		// Overloaded Operators
 
 		// Assignment Operator
-		FileLogger& operator=(const FileLogger& other) noexcept
+		FileLogger& operator=(const FileLogger& other)
 		{
 			if (this != &other)
 			{
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 				if (!std::regex_match(other.m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
 #else
 				// Check file path for null, empty, inexistent or whitespace only paths and filenames
@@ -608,11 +618,11 @@ namespace sblogger
 	inline void FileLogger::writeToStream(const std::string&& str)
 	{
 		if (!m_FileStream.is_open())
-#ifdef LEGACY // Pre C++17 Compilers
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			std::cerr << "The file stream " + m_FilePath + " is not opened.";
 #else
 			std::cerr << "The file stream " + m_FilePath.string() + " is not opened.";
-#endif // LEGACY
+#endif
 		else
 		{
 			m_FileStream << str;
