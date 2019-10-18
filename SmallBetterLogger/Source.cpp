@@ -28,7 +28,7 @@ int main()
 
 	// Declarations (FileLogger)
 	sblogger::FileLogger fileLogger("example.log", "[File Log]");
-	sblogger::FileLogger fileLogger2("   .txt", "[File Log]"); // Will throw error since filename is empty
+	//sblogger::FileLogger fileLogger2("   .txt", "[File Log]"); // Will throw error since filename is empty
 
 	// Basic calls (FileLogger)
 	fileLogger.ClearLogs();

@@ -46,6 +46,12 @@ SOFTWARE.
 #define NEWLINE "\r\n"
 #endif
 
+// For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
+#ifdef LEGACY
+// File Path Regex
+#define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex")
+#endif
+
 namespace sblogger
 {
 	// Loggers' declaration
@@ -331,7 +337,7 @@ namespace sblogger
 		{ }
 
 		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
-		StreamLogger(const std::string&& format, bool autoFlush = false)
+		StreamLogger(const char* format, bool autoFlush = false)
 			: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
 		{ }
 
@@ -426,7 +432,11 @@ namespace sblogger
 	class FileLogger : public Logger
 	{
 		// Private members
+#ifdef LEGACY // Pre C++17 Compilers
+		std::string m_FilePath;
+#else
 		std::filesystem::path m_FilePath;
+#endif
 		std::fstream m_FileStream;
 
 		// Writes string to file stream and flush if auto flush is set
@@ -445,14 +455,23 @@ namespace sblogger
 		{
 			if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
 
+#ifdef LEGACY // Pre C++17 Compilers
+			m_FilePath = filePath;
+			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
 			m_FilePath = std::filesystem::path(filePath);
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
 			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
 			if(!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
-
+#endif
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+#ifdef LEGACY // Pre C++17 Compilers
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
@@ -460,15 +479,23 @@ namespace sblogger
 		FileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true) 
 			: Logger(format, autoFlush)
 		{
+#ifdef LEGACY // Pre C++17 Compilers
+			m_FilePath = filePath;
+			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
 			m_FilePath = std::filesystem::path(filePath);
-
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
 			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
 			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
-
+#endif
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+#ifdef LEGACY // Pre C++17 Compilers
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
 		}
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
@@ -476,15 +503,23 @@ namespace sblogger
 		FileLogger(const std::string&& filePath, const std::string& format = std::string(), bool autoFlush = true) 
 			: Logger(format, autoFlush)
 		{
+#ifdef LEGACY // Pre C++17 Compilers
+			m_FilePath = filePath;
+			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
 			m_FilePath = std::filesystem::path(filePath);
-
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
 			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
 			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
-
+#endif
 			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+#ifdef LEGACY // Pre C++17 Compilers
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
 		}
 
 		// Copy constructor
@@ -492,15 +527,23 @@ namespace sblogger
 		FileLogger(const FileLogger& other)
 			: Logger(other)
 		{
-			// Check file path for null, empty, inexistent or whitespace only paths and filenames
-			if (!other.m_FilePath.has_filename() || !other.m_FilePath.has_extension()) throw NullOrEmptyPathException();
-			if (other.m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-			if (!std::filesystem::directory_entry(other.m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
-
+#ifdef LEGACY // Pre C++17 Compilers
 			m_FilePath = other.m_FilePath;
-			
+			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
+			m_FilePath = std::filesystem::path(other.m_FilePath);
+			// Check file path for null, empty, inexistent or whitespace only paths and filenames
+			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
+#endif
 			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
+
+#ifdef LEGACY // Pre C++17 Compilers
+			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
 			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
 		}
 
 		// Move constructor
@@ -532,11 +575,15 @@ namespace sblogger
 		{
 			if (this != &other)
 			{
+#ifdef LEGACY // Pre C++17 Compilers
+				if (!std::regex_match(other.m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
+#else
 				// Check file path for null, empty, inexistent or whitespace only paths and filenames
 				if (!other.m_FilePath.has_filename() || !other.m_FilePath.has_extension()) throw NullOrEmptyPathException();
 				if (other.m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
 				if (!std::filesystem::directory_entry(other.m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
-				
+#endif
+				m_FilePath = other.m_FilePath;
 				m_AutoFlush = other.m_AutoFlush;
 				m_Format = other.m_Format;
 				m_IndentCount = other.m_IndentCount;
@@ -558,7 +605,11 @@ namespace sblogger
 	inline void FileLogger::writeToStream(const std::string&& str)
 	{
 		if (!m_FileStream.is_open())
+#ifdef LEGACY // Pre C++17 Compilers
+			std::cerr << "The file stream " + m_FilePath + " is not opened.";
+#else
 			std::cerr << "The file stream " + m_FilePath.string() + " is not opened.";
+#endif // LEGACY
 		else
 		{
 			m_FileStream << str;
