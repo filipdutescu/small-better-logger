@@ -53,8 +53,8 @@ int main()
 {
   sblogger::StreamLogger logger;
   ...
-	logger.WriteLine("Hello");
-	logger.Write("{0}!", "World");
+  logger.WriteLine("Hello");
+  logger.Write("{0}!", "World");
   ...
 }
 ````
@@ -66,8 +66,8 @@ int main()
 {
   sblogger::FileLogger logger("mylog.log");
   ...
-	logger.WriteLine("Hello");
-	logger.Write("{0}!", "World");
+  logger.WriteLine("Hello");
+  logger.Write("{0}!", "World");
   ...
 }
 ````
@@ -75,15 +75,15 @@ int main()
 If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```, as follows:
 ````cpp
 #include "SmallBetterLogger.hpp"
-...
+//...
 int main()
 {
   sblogger::StreamLogger logger("[MyLogFormat]");
   ...
   logger.Indent();
-	logger.WriteLine("Hello World,");
+  logger.WriteLine("Hello World,");
   logger.Dedent();
-	logger.Write("This is my logger!");
+  logger.Write("This is my logger!");
   ...
 }
 ````
