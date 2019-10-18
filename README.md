@@ -56,7 +56,7 @@ All loggers have the following methods for printing messages (inherited from ```
 **```sblogger::FileLogger```** also contains an additional method:
   * **```void ClearLogs()```** - removes all content from the log file
 
-For more information regarding usage, please refer to the [Wiki](small-better-logger/wiki) *(WIP)*.
+For more information regarding usage, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.
 
 ### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:
