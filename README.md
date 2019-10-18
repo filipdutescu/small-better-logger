@@ -6,7 +6,7 @@ A small, better logger for C++ (and any project that wishes to use it as .dll)
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library (```.lib``` or ```.dll```).
 
 ### Prerequisites
-**IMPORTANT**: In order to use this library, you will need to compile using a **C++17 (or later)** compiler.
+In order to use this library, you will need to compile using a **C++17 (or later)** compiler.
 
 ### Including as Source Code
 All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
@@ -24,9 +24,11 @@ All the code which is related to the **SBL** is located in the ```sblogger``` na
   * **```sblogger::StreamLogger```** (which writes to the standard streams)
   * **```sblogger::FileLogger```** (which writes to a file) 
 
+
 There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. 
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
+### Logger Methods
 All loggers have the following methods for printing messages (inherited from ```sblogger::Logger```):
   * **```void Write(const std::string& message, const T& ...t)```** - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
   * **```void WriteLine(const std::string& message, const T& ...t)```** - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
@@ -42,7 +44,7 @@ All loggers have the following methods for printing messages (inherited from ```
 
 For more information regarding usage, please refer to the [Wiki](README.md) *(WIP)*.
 
-### Examples
+### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:
 ````cpp
 ...
