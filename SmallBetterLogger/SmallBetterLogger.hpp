@@ -25,7 +25,16 @@ SOFTWARE.
 #ifndef SMALL_BETTER_LOGGER_H
 #define SMALL_BETTER_LOGGER_H
 
-#define SBLOGGER_OLD_DATES // For formatting dates to string pre C++20
+// TODO: Modify README.md to reflect this changes
+#if __cplusplus != 199711L
+#if __cplusplus < 201703L
+// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
+#define SBLOGGER_LEGACY
+// For formatting dates to string pre C++20
+#elif __cplusplus == 201703L
+#define SBLOGGER_OLD_DATES
+#endif
+#endif
 
 // Used for writing to output stream
 #include <iostream>
