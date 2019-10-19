@@ -36,6 +36,8 @@ int main()
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
 
+	sblogger::DEBUG;
+
 	delete logLog;
 	std::cin.get();
 

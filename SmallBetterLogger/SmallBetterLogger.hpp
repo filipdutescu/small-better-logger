@@ -86,6 +86,15 @@ namespace sblogger
 	// Used to log messages to a file stream
 	using file_logger = FileLogger;
 
+	// Enum Definitions
+
+	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
+	enum LOG_LEVELS
+	{ 
+		TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF 
+	};
+	using log_levels = LOG_LEVELS;
+
 	// Stream types to be used by a Logger instance
 	enum class STREAM_TYPE
 	{
@@ -165,6 +174,7 @@ namespace sblogger
 		std::string m_Format;
 		bool m_AutoFlush;
 		int m_IndentCount;
+		/*static */LOG_LEVELS m_CurrentLogLevel;
 
 		// Protected constructors
 
@@ -208,7 +218,7 @@ namespace sblogger
 
 	public:
 		// Default destructor
-		~Logger() = default;
+		virtual ~Logger() = default;
 
 		// Public Methods
 
@@ -640,8 +650,16 @@ namespace sblogger
 	// Clear log file
 	inline void FileLogger::ClearLogs()
 	{
-		std::filesystem::resize_file(m_FilePath, 0);
-		m_FileStream.seekp(0);
+		if (m_FileStream.is_open())
+		{
+#ifdef SBLOGGER_LEGACY
+			m_FileStream.close();
+			m_FileStream = std::fstream(m_FilePath, std::ofstream::out | std::ofstream::trunc);
+#else
+			std::filesystem::resize_file(m_FilePath, 0);
+			m_FileStream.seekp(0);
+#endif
+		}
 	}
 }
 #endif
