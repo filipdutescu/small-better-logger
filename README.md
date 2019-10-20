@@ -65,6 +65,7 @@ For more information regarding usage, please refer to the [Wiki](https://github.
 ### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:
 ````cpp
+...
 #include "SmallBetterLogger.hpp"
 ...
 int main()
@@ -78,6 +79,7 @@ int main()
 ````
 or if you wanted to write to a file:
 ````cpp
+...
 #include "SmallBetterLogger.hpp"
 ...
 int main()
@@ -92,6 +94,7 @@ int main()
 
 If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```, as follows:
 ````cpp
+...
 #include "SmallBetterLogger.hpp"
 //...
 int main()
