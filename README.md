@@ -29,6 +29,7 @@ If you are using a pre **C++17** (**C++11** or **C++14**) compiler which does no
 #define SBLOGGER_LEGACY
 ````
 > ***Note:*** *For **MSVC** you can fix this problem, by setting up the **`/Zc:__cplusplus`** compiler option. If you do not know how to do this, please refer to the following [Microsoft guide](https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019#to-set-this-compiler-option-in-visual-studio) for setting it up.*
+
 > ***Note:*** *The library assumes by default, that you are using a C++17 compiler. In that case, no macros need to be defined.*
 
 #### Cross-Platform Info
