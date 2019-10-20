@@ -36,6 +36,31 @@ SOFTWARE.
 	#endif
 #endif
 
+#ifdef SBLOGGER_LEGACY
+	// Raw file path regex as string literal
+	#define SBLOGGER_RAW_FILE_PATH_REGEX R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex"
+#endif
+
+// Cross-platform macros
+#ifdef SBLOGGER_NIX
+	#define NEWLINE '\n'
+#elif SBLOGGER_OS9
+	#define NEWLINE '\r'
+#else
+	#define NEWLINE "\r\n"
+#endif
+
+// Log Levels macros to be used with "SBLOGGER_LOG_LEVEL" macro for defining a default level
+#define SBLOGGER_LEVEL_TRACE     0
+#define SBLOGGER_LEVEL_DEBUG     1
+#define SBLOGGER_LEVEL_INFO      2
+#define SBLOGGER_LEVEL_WARN      3
+#define SBLOGGER_LEVEL_ERROR     4
+#define SBLOGGER_LEVEL_CRITICAL  5
+#define SBLOGGER_LEVEL_OFF       6
+// Define your prefered active level using the macro bellow, or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
+//#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
+
 // Used for writing to output stream
 #include <iostream>
 #include <fstream>
@@ -59,19 +84,10 @@ SOFTWARE.
 #include <vector>
 #include <regex>
 
-// Cross-platform macros
-#ifdef SBLOGGER_NIX
-	#define NEWLINE '\n'
-#elif SBLOGGER_OS9
-	#define NEWLINE '\r'
-#else
-	#define NEWLINE "\r\n"
-#endif
-
 // For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
 #ifdef SBLOGGER_LEGACY
-	// File Path Regex
-	#define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex")
+	// File Path Regex using std::regex
+	#define SBLOGGER_FILE_PATH_REGEX std::regex(SBLOGGER_RAW_FILE_PATH_REGEX)
 #endif
 
 namespace sblogger
@@ -98,7 +114,7 @@ namespace sblogger
 	// Enum Definitions
 
 	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
-	enum LOG_LEVELS
+	enum class LOG_LEVELS
 	{ 
 		TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF 
 	};
@@ -183,7 +199,7 @@ namespace sblogger
 		std::string m_Format;
 		bool m_AutoFlush;
 		int m_IndentCount;
-		/*static */LOG_LEVELS m_CurrentLogLevel;
+		static LOG_LEVELS s_CurrentLogLevel;
 
 		// Protected constructors
 
@@ -231,6 +247,12 @@ namespace sblogger
 
 		// Public Methods
 
+		// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc). 
+		static inline void SetLoggingLevel(const LOG_LEVELS& level) noexcept;
+
+		// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
+		static inline const LOG_LEVELS GetLoggingLevel(const LOG_LEVELS& level) noexcept;
+
 		// Writes to the stream the newline character
 		inline void WriteLine();
 
@@ -259,6 +281,22 @@ namespace sblogger
 		// Dedent (remove '\t') log, returns the number of indents the final message will contain
 		inline const int Dedent();
 	};
+	// Check to see what is the current active log level, by default use TRACE
+#if SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_DEBUG
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::DEBUG;
+#elif SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_INFO
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::INFO;
+#elif SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_WARN
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::WARN;
+#elif SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_ERROR
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::ERROR;
+#elif SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_CRITICAL
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::CRITICAL;
+#elif SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_OFF
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::OFF;
+#else
+	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::TRACE;
+#endif
 
 	// Converts a T value to a string to be used in writing a log
 	template<typename T>
@@ -267,6 +305,18 @@ namespace sblogger
 		std::stringstream ss;
 		ss << t;
 		return ss.str();
+	}
+
+	// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc).
+	inline void Logger::SetLoggingLevel(const LOG_LEVELS& level) noexcept
+	{
+		s_CurrentLogLevel = level;
+	}
+
+	// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
+	inline const LOG_LEVELS Logger::GetLoggingLevel(const LOG_LEVELS& level) noexcept
+	{
+		return s_CurrentLogLevel;
 	}
 
 	// Writes to the stream the newline character
@@ -489,7 +539,7 @@ namespace sblogger
 
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = filePath;
-			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
 			m_FilePath = std::filesystem::path(filePath);
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
@@ -513,7 +563,7 @@ namespace sblogger
 		{
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = filePath;
-			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
 			m_FilePath = std::filesystem::path(filePath);
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
@@ -537,7 +587,7 @@ namespace sblogger
 		{
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = filePath;
-			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
 			m_FilePath = std::filesystem::path(filePath);
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
@@ -561,7 +611,7 @@ namespace sblogger
 		{
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			m_FilePath = other.m_FilePath;
-			if (!std::regex_match(m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
 			m_FilePath = std::filesystem::path(other.m_FilePath);
 			// Check file path for null, empty, inexistent or whitespace only paths and filenames
@@ -608,7 +658,7 @@ namespace sblogger
 			if (this != &other)
 			{
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-				if (!std::regex_match(other.m_FilePath, FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
+				if (!std::regex_match(other.m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
 #else
 				// Check file path for null, empty, inexistent or whitespace only paths and filenames
 				if (!other.m_FilePath.has_filename() || !other.m_FilePath.has_extension()) throw NullOrEmptyPathException();
