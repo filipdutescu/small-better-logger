@@ -25,7 +25,6 @@ SOFTWARE.
 #ifndef SMALL_BETTER_LOGGER_H
 #define SMALL_BETTER_LOGGER_H
 
-// TODO: Modify README.md to reflect this changes
 #if __cplusplus != 199711L
 	#if __cplusplus < 201703L
 		// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives

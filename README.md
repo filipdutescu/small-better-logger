@@ -22,7 +22,12 @@ For other projects, you need to compile it to either a ```.lib``` or a ```.dll``
 ### Setting Up
 
 #### Using Older C++ Standards
-If you are using a pre **C++17** (**C++11** or **C++14**) compiler, you can define the macro ```SBLOGGER_LEGACY```, in order to use this library. Please define it either before including **SBLogger** or on the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as such:
+The **SBLogger** library makes use of the predefined [```__cplusplus```](https://en.cppreference.com/w/cpp/preprocessor/replace#Predefined_macros) macro, which provides the compiler version, to auto-detect which code needs to change in order for it to be used in the project it is included in.
+
+If you are using a pre **C++17** (**C++11** or **C++14**) compiler which does not support/properly implement the [```__cplusplus```](https://en.cppreference.com/w/cpp/preprocessor/replace#Predefined_macros) macro (such as **MSVC**), you can define the macro ```SBLOGGER_LEGACY```, in order to use this library. Please define it either before including **SBLogger** or on the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as shown bellow.
+
+> ***Note:*** *For **MSVC** you can fix this problem, by setting up the **`/Zc:__cplusplus`** compiler option. If you do not know how to do this, please refer to the following [Microsoft guide](https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019#to-set-this-compiler-option-in-visual-studio) for setting it up.*
+
 ````cpp
 #define SBLOGGER_LEGACY
 ````
