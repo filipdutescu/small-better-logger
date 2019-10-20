@@ -27,13 +27,14 @@ SOFTWARE.
 
 // TODO: Modify README.md to reflect this changes
 #if __cplusplus != 199711L
-#if __cplusplus < 201703L
-// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
-#define SBLOGGER_LEGACY
-// For formatting dates to string pre C++20
-#elif __cplusplus == 201703L
-#define SBLOGGER_OLD_DATES
-#endif
+	#if __cplusplus < 201703L
+		// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
+		#define SBLOGGER_LEGACY
+	#endif
+	#if __cplusplus <= 201703L
+		// For formatting dates to string pre C++20
+		#define SBLOGGER_OLD_DATES
+	#endif
 #endif
 
 // Used for writing to output stream
@@ -61,17 +62,17 @@ SOFTWARE.
 
 // Cross-platform macros
 #ifdef SBLOGGER_NIX
-#define NEWLINE '\n'
+	#define NEWLINE '\n'
 #elif SBLOGGER_OS9
-#define NEWLINE '\r'
+	#define NEWLINE '\r'
 #else
-#define NEWLINE "\r\n"
+	#define NEWLINE "\r\n"
 #endif
 
 // For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
 #ifdef SBLOGGER_LEGACY
-// File Path Regex
-#define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex")
+	// File Path Regex
+	#define FILE_PATH_REGEX std::regex(R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex")
 #endif
 
 namespace sblogger
@@ -653,7 +654,8 @@ namespace sblogger
 	// Flush file stream
 	inline void FileLogger::Flush()
 	{
-		m_FileStream.flush();
+		if(m_FileStream.is_open())
+			m_FileStream.flush();
 	}
 
 	// Clear log file
