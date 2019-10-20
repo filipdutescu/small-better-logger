@@ -114,7 +114,7 @@ namespace sblogger
 	// Enum Definitions
 
 	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
-	enum class LOG_LEVELS
+	enum LOG_LEVELS
 	{ 
 		TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF 
 	};
