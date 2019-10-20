@@ -92,7 +92,7 @@ int main()
 }
 ````
 
-If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```, as follows:
+If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
