@@ -36,18 +36,18 @@ SOFTWARE.
 	#endif
 #endif
 
+// Cross-platform macros
+#ifdef SBLOGGER_NIX
+	#define SBLOGGER_NEWLINE '\n'
+#elif SBLOGGER_OS9
+	#define SBLOGGER_NEWLINE '\r'
+#else
+	#define SBLOGGER_NEWLINE "\r\n"
+#endif
+
 #ifdef SBLOGGER_LEGACY
 	// Raw file path regex as string literal
 	#define SBLOGGER_RAW_FILE_PATH_REGEX R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex"
-#endif
-
-// Cross-platform macros
-#ifdef SBLOGGER_NIX
-	#define NEWLINE '\n'
-#elif SBLOGGER_OS9
-	#define NEWLINE '\r'
-#else
-	#define NEWLINE "\r\n"
 #endif
 
 // Log Levels macros to be used with "SBLOGGER_LOG_LEVEL" macro for defining a default level
@@ -233,7 +233,7 @@ namespace sblogger
 		inline std::string stringConvert(const T& t);
 
 		// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
-		inline std::string replacePlaceholders(std::string message, std::vector<std::string>& items);
+		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items);
 
 		// Add indent to string (if it is set)
 		inline std::string addIndent(std::string message);
@@ -253,33 +253,116 @@ namespace sblogger
 		// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
 		static inline const LOG_LEVELS GetLoggingLevel(const LOG_LEVELS& level) noexcept;
 
-		// Writes to the stream the newline character
-		inline void WriteLine();
-
-		// Writes to the stream a message and inserts values into placeholders (should they exist)
-		template<typename ...T>
-		inline void Write(const std::string& message, const T& ...t);
-
-		// Writes to the stream a message and inserts values into placeholders (should they exist)
-		template<typename ...T>
-		inline void Write(const std::string&& message, const T&& ...t);
-
-		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
-		template<typename ...T>
-		inline void WriteLine(const std::string& message, const T& ...t);
-
-		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
-		template<typename ...T>
-		inline void WriteLine(const std::string&& message, const T&& ...t);
+		// Set the current log format to "format"
+		inline void SetFormat(const std::string& format);
 
 		// Flush appropriate stream
-		virtual inline void Flush() = 0 ;
+		virtual inline void Flush() = 0;
 
 		// Indent (prepend '\t') log, returns the number of indents the final message will contain
 		inline const int Indent();
 
 		// Dedent (remove '\t') log, returns the number of indents the final message will contain
 		inline const int Dedent();
+
+		// Generic Methods: Write a TRACE level message (depending on the specified "LOG_LEVEL") to a stream
+
+		// Writes to the stream the newline character, assuming a default log level of TRACE
+		inline void WriteLine(LOG_LEVELS logLevel = LOG_LEVELS::TRACE);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), assuming a default log level of TRACE
+		template<typename ...T>
+		inline void Write(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), assuming a default log level of TRACE
+		template<typename ...T>
+		inline void Write(const std::string&& message, const T&& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, assuming a default log level of TRACE
+		template<typename ...T>
+		inline void WriteLine(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, assuming a default log level of TRACE
+		template<typename ...T>
+		inline void WriteLine(const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a level message (depending on the specified "LOG_LEVEL") to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of "logLevel" importance
+		template<typename ...T>
+		inline void Write(LOG_LEVELS logLevel, const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of "logLevel" importance
+		template<typename ...T>
+		inline void Write(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, of "logLevel" importance
+		template<typename ...T>
+		inline void WriteLine(LOG_LEVELS logLevel, const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, of "logLevel" importance
+		template<typename ...T>
+		inline void WriteLine(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a TRACE level message to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of TRACE importance
+		template<typename ...T>
+		inline void Trace(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of TRACE importance
+		template<typename ...T>
+		inline void Trace(const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a DEBUG level message to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of DEBUG importance
+		template<typename ...T>
+		inline void Debug(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of DEBUG importance
+		template<typename ...T>
+		inline void Debug(const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a INFO level message to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of INFO importance
+		template<typename ...T>
+		inline void Info(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of INFO importance
+		template<typename ...T>
+		inline void Info(const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a WARN level message to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of WARN importance
+		template<typename ...T>
+		inline void Warn(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of WARN importance
+		template<typename ...T>
+		inline void Warn(const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a ERROR level message to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of ERROR importance
+		template<typename ...T>
+		inline void Error(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), with ERROR importance
+		template<typename ...T>
+		inline void Error(const std::string&& message, const T&& ...t);
+
+		// Generic Methods: Write a CRITICAL level message to a stream 
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), of CRITICAL importance
+		template<typename ...T>
+		inline void Critical(const std::string& message, const T& ...t);
+
+		// Writes to the stream a message and inserts values into placeholders (should they exist), with CRITICAL importance
+		template<typename ...T>
+		inline void Critical(const std::string&& message, const T&& ...t);
 	};
 	// Check to see what is the current active log level, by default use TRACE
 #if SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_DEBUG
@@ -307,58 +390,8 @@ namespace sblogger
 		return ss.str();
 	}
 
-	// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc).
-	inline void Logger::SetLoggingLevel(const LOG_LEVELS& level) noexcept
-	{
-		s_CurrentLogLevel = level;
-	}
-
-	// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
-	inline const LOG_LEVELS Logger::GetLoggingLevel(const LOG_LEVELS& level) noexcept
-	{
-		return s_CurrentLogLevel;
-	}
-
-	// Writes to the stream the newline character
-	inline void Logger::WriteLine()
-	{
-		writeToStream(m_Format + NEWLINE);
-	}
-
-	// Writes to the stream a message and inserts values into placeholders (should they exist)
-	template<typename ...T>
-	inline void Logger::Write(const std::string& message, const T& ...t)
-	{
-		std::vector<std::string> printValues{ stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues));
-	}
-
-	// Writes to the stream a message and inserts values into placeholders (should they exist)
-	template<typename ...T>
-	inline void Logger::Write(const std::string&& message, const T&& ...t)
-	{
-		std::vector<std::string> printValues{ stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues));
-	}
-
-	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
-	template<typename ...T>
-	inline void Logger::WriteLine(const std::string& message, const T& ...t)
-	{
-		std::vector<std::string> printValues{ stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues) + NEWLINE);
-	}
-
-	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character
-	template<typename ...T>
-	inline void Logger::WriteLine(const std::string&& message, const T&& ...t)
-	{
-		std::vector<std::string> printValues{ stringConvert(t)... };
-		writeToStream(replacePlaceholders(message, printValues) + NEWLINE);
-	}
-
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
-	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>& items)
+	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items)
 	{
 		std::regex placeholder;
 
@@ -390,6 +423,207 @@ namespace sblogger
 	inline const int Logger::Dedent()
 	{
 		return --m_IndentCount;
+	}
+
+	// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc).
+	inline void Logger::SetLoggingLevel(const LOG_LEVELS& level) noexcept
+	{
+		s_CurrentLogLevel = level;
+	}
+
+	// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
+	inline const LOG_LEVELS Logger::GetLoggingLevel(const LOG_LEVELS& level) noexcept
+	{
+		return s_CurrentLogLevel;
+	}
+
+	// Set the current log format to "format"
+	inline void Logger::SetFormat(const std::string& format)
+	{
+		m_Format = format;
+	}
+
+	// Writes to the stream the newline character with a log level of TRACE
+	inline void Logger::WriteLine(LOG_LEVELS logLevel)
+	{
+		if(s_CurrentLogLevel <= logLevel)
+			writeToStream(SBLOGGER_NEWLINE);
+	}
+
+	// Generic write methods to write a TRACE level message to the stream
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) with a default level of TRACE
+	template<typename ...T>
+	inline void Logger::Write(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) with a default level of TRACE
+	template<typename ...T>
+	inline void Logger::Write(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character with a default level of TRACE
+	template<typename ...T>
+	inline void Logger::WriteLine(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character with a default level of TRACE
+	template<typename ...T>
+	inline void Logger::WriteLine(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
+	}
+
+	// Generic Methods: Write a level message (depending on the specified "LOG_LEVEL") to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), with "logLevel" importance
+	template<typename ...T>
+	inline void Logger::Write(LOG_LEVELS logLevel, const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= logLevel)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), with "logLevel" importance
+	template<typename ...T>
+	inline void Logger::Write(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= logLevel)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, with "logLevel" importance
+	template<typename ...T>
+	inline void Logger::WriteLine(LOG_LEVELS logLevel, const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= logLevel)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, with "logLevel" importance
+	template<typename ...T>
+	inline void Logger::WriteLine(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= logLevel)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
+	}
+
+	// Generic Methods: Write a TRACE level message to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of TRACE importance
+	template<typename ...T>
+	inline void Logger::Trace(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of TRACE importance
+	template<typename ...T>
+	inline void Logger::Trace(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Generic Methods: Write a DEBUG level message to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of DEBUG importance
+	template<typename ...T>
+	inline void Logger::Debug(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::DEBUG)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of DEBUG importance
+	template<typename ...T>
+	inline void Logger::Debug(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::DEBUG)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Generic Methods: Write a INFO level message to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of INFO importance
+	template<typename ...T>
+	inline void Logger::Info(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::INFO)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of INFO importance
+	template<typename ...T>
+	inline void Logger::Info(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::INFO)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Generic Methods: Write a WARN level message to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of WARN importance
+	template<typename ...T>
+	inline void Logger::Warn(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::WARN)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of WARN importance
+	template<typename ...T>
+	inline void Logger::Warn(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::WARN)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Generic Methods: Write a ERROR level message to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of ERROR importance
+	template<typename ...T>
+	inline void Logger::Error(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::ERROR)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of ERROR importance
+	template<typename ...T>
+	inline void Logger::Error(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::ERROR)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Generic Methods: Write a CRITICAL level message to a stream 
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of CRITICAL importance
+	template<typename ...T>
+	inline void Logger::Critical(const std::string& message, const T& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::CRITICAL)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
+	}
+
+	// Writes to the stream a message and inserts values into placeholders (should they exist), of CRITICAL importance
+	template<typename ...T>
+	inline void Logger::Critical(const std::string&& message, const T&& ...t)
+	{
+		if (s_CurrentLogLevel <= LOG_LEVELS::CRITICAL)
+			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
 	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
@@ -448,7 +682,7 @@ namespace sblogger
 		// Destructor
 		
 		// Flush stream before deletion
-		~StreamLogger()
+		~StreamLogger() override
 		{ 
 			switch (m_StreamType)
 			{
@@ -641,7 +875,7 @@ namespace sblogger
 		// Destructor
 
 		// Flush and close stream if open
-		~FileLogger()
+		~FileLogger() override
 		{
 			if (m_FileStream.is_open())
 			{
