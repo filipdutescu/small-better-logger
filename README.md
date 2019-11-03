@@ -47,12 +47,13 @@ There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
 ### Logger Methods
-All loggers have the following methods for printing messages (inherited from ```sblogger::Logger```):
-  * ```void Write(const std::string& message, const T& ...t)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
-  * ```void WriteLine(const std::string& message, const T& ...t)``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
-  * ```int Indent()``` - increase indent by 1
-  * ```int Dedent()``` - decrease indent by 1
+All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
+  * ```void Write(...)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
+  * ```void WriteLine(...)``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * ```int Indent()```/```int Dedent()``` - increase/decrease indent by 1
   * ```void Flush()``` - flushes the stream
+
+> ***Note:*** *Specific logging methods, which make usage of different logging levels also exist (ex: ```sblogger::Logger::Trace```, ```sblogger::Logger::Info```, ```sblogger::Logger::Error``` etc.). More information concerning them can be found either in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP) or in the examples ([Usage Examples](README.md#Usage-Examples) or the [`Source.cpp`](SmallBetterLogger/Source.cpp) file).*
 
 **```sblogger::StreamLogger```** constains an additional method:
   * ```void SetStreamType(STREAM_TYPE streamType)``` - change the current stream type to a different ```STREAM_TYPE```
@@ -60,7 +61,7 @@ All loggers have the following methods for printing messages (inherited from ```
 **```sblogger::FileLogger```** also contains an additional method:
   * ```void ClearLogs()``` - removes all content from the log file
 
-For more information regarding usage, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.
+For more information regarding available methods, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.
 
 ### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:
@@ -77,6 +78,11 @@ int main()
   ...
 }
 ````
+Output:
+````console
+Hello
+World!
+````
 or if you wanted to write to a file:
 ````cpp
 ...
@@ -90,6 +96,12 @@ int main()
   logger.Write("{0}!", "World");
   ...
 }
+````
+Output:
+````console
+#In "mylog.log"
+Hello
+World!
 ````
 
 If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
@@ -110,8 +122,8 @@ int main()
 ````
 Output:
 ````console
-    Hello World,
-This is my logger!
+    [MyLogFormat] Hello World,
+[MyLogFormat] This is my logger!
 ````
 
 > ***Note:*** *You can find basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
