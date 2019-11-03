@@ -251,7 +251,10 @@ namespace sblogger
 		static inline void SetLoggingLevel(const LOG_LEVELS& level) noexcept;
 
 		// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
-		static inline const LOG_LEVELS GetLoggingLevel(const LOG_LEVELS& level) noexcept;
+		static inline const LOG_LEVELS GetLoggingLevel() noexcept;
+
+		// Get the current log format
+		inline const std::string GetFormat() const;
 
 		// Set the current log format to "format"
 		inline void SetFormat(const std::string& format);
@@ -432,9 +435,15 @@ namespace sblogger
 	}
 
 	// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
-	inline const LOG_LEVELS Logger::GetLoggingLevel(const LOG_LEVELS& level) noexcept
+	inline const LOG_LEVELS Logger::GetLoggingLevel() noexcept
 	{
 		return s_CurrentLogLevel;
+	}
+
+	// Get the current log format
+	inline const std::string Logger::GetFormat() const
+	{
+		return m_Format;
 	}
 
 	// Set the current log format to "format"
@@ -626,6 +635,8 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	// StreamLogger class
+
 	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	class StreamLogger : public Logger
 	{
@@ -717,6 +728,7 @@ namespace sblogger
 		inline void SetStreamType(STREAM_TYPE streamType);
 	};
 
+	// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
 	inline void StreamLogger::writeToStream(const std::string&& str)
 	{
 		switch (m_StreamType)
