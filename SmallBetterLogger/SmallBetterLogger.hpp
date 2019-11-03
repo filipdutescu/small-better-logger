@@ -73,8 +73,10 @@ SOFTWARE.
 
 // For formatting dates to string pre C++20
 #ifndef SBLOGGER_OLD_DATES
+// Make use of std::chrono::format
 #include <chrono>
 #else
+// Make use of std::put_time
 #include <iomanip>
 #include <ctime>
 #endif
@@ -203,7 +205,7 @@ namespace sblogger
 
 		// Protected constructors
 
-		// Initialize a logger, with no format, auto flush (by default)
+		// Initialize a logger, with a format, auto flush (by default)
 		Logger(const std::string& format, bool autoFlush)
 			: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
 		{ }
