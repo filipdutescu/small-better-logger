@@ -83,7 +83,10 @@ Output:
 Hello
 World!
 ````
-or if you wanted to write to a file:
+
+***
+
+Or if you wanted to write to a file:
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
@@ -103,6 +106,8 @@ Output:
 Hello
 World!
 ````
+
+***
 
 If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
 ````cpp
