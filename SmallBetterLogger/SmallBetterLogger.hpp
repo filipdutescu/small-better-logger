@@ -76,8 +76,7 @@ SOFTWARE.
 // Make use of std::chrono::format
 #include <chrono>
 #else
-// Make use of std::put_time
-#include <iomanip>
+// Make use of std::strftime
 #include <ctime>
 #endif
 
@@ -242,6 +241,9 @@ namespace sblogger
 
 		// Writes string to appropriate stream
 		inline virtual void writeToStream(const std::string&& message) = 0;
+
+		// Replace date format using std::strftime (pre C++20) or std::chrono::format
+		std::string replaceDateFormats();
 
 	public:
 		// Default destructor
@@ -417,6 +419,29 @@ namespace sblogger
 
 		return  message;
 	}
+
+#ifdef SBLOGGER_OLD_DATES
+	// Replace date format using std::strftime (pre C++20)
+	inline std::string Logger::replaceDateFormats()
+	{
+		std::time_t t = std::time(nullptr);
+		char *buffer = new char[m_Format.size() + 100];
+		std::string result;
+		if (std::strftime(buffer, sizeof(char) * (m_Format.size() + 100), m_Format.c_str(), std::localtime(&t)))
+			result = std::string(buffer);
+		else result = m_Format;
+
+		delete[] buffer;
+		return result;
+	}
+#else
+	// Replace date format using std::chrono::format
+	inline std::string Logger::replaceDateFormats()
+	{
+		// Wait for MSVC to catch up
+		return std::string();
+	}
+#endif
 
 	// Indent (prepend '\t') log, returns the number of indents the final message will contain
 	inline const int Logger::Indent()

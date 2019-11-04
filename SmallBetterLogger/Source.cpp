@@ -5,6 +5,8 @@
 
 int main()
 {
+	std::cout << SBLOGGER_DATE_STRING("") << '\n';
+
 	std::string tmp = "Hello {0}";
 
 	// Declarations (Logger)
