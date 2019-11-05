@@ -65,6 +65,11 @@ SOFTWARE.
 #include <iostream>
 #include <fstream>
 
+// Used for formatting and creating the output string
+#include <sstream>
+#include <vector>
+#include <regex>
+
 // For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
 #ifndef SBLOGGER_LEGACY
 // Used for truncating log files
@@ -79,11 +84,6 @@ SOFTWARE.
 // Make use of std::strftime
 #include <ctime>
 #endif
-
-// Used for formatting and creating the output string
-#include <sstream>
-#include <vector>
-#include <regex>
 
 // For pre C++17 compilers define the "LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
 #ifdef SBLOGGER_LEGACY
@@ -207,7 +207,25 @@ namespace sblogger
 		// Initialize a logger, with a format, auto flush (by default)
 		Logger(const std::string& format, bool autoFlush)
 			: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
-		{ }
+		{
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?tr.*)")))      
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?tr)"), std::regex_match(m_Format, std::regex(R"(.*%\^tr.*)")) ? "TRACE" : "Trace");
+			
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?dbg.*)")))     
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?dbg)"), std::regex_match(m_Format, std::regex(R"(.*%\^dbg.*)")) ? "DEBUG" : "Debug");
+			
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?inf.*)")))     
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?inf)"), std::regex_match(m_Format, std::regex(R"(.*%\^inf.*)")) ? "INFO" : "Info");
+			
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?wn.*)")))      
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?wn)"), std::regex_match(m_Format, std::regex(R"(.*%\^wn.*)")) ? "WARN" : "Warn");
+			
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?er.*)")))      
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?er)"), std::regex_match(m_Format, std::regex(R"(.*%\^er.*)")) ? "ERROR" : "Error");
+			
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?crt.*)")))     
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?crt)"), std::regex_match(m_Format, std::regex(R"(.*%\^crt.*)")) ? "CRITICAL" : "Critical");
+		}
 
 		// Initialize a logger, with no format, auto flush (by default)
 		Logger(bool autoFlush)
@@ -408,7 +426,7 @@ namespace sblogger
 			message = std::regex_replace(message, placeholder, items[i]);
 		}
 
-		return addIndent(m_Format.empty() ? message : m_Format + " " + message);
+		return addIndent(m_Format.empty() ? message : replaceDateFormats().append(" ").append(message));
 	}
 
 	// Add indent to string (if it is set)

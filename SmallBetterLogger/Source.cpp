@@ -5,13 +5,11 @@
 
 int main()
 {
-	std::cout << SBLOGGER_DATE_STRING("") << '\n';
-
 	std::string tmp = "Hello {0}";
 
 	// Declarations (Logger)
 	sblogger::StreamLogger l;
-	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[Error]");
+	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[%Y-%m-%d][%^er]");
 	// Making use of the abstract class
 	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::STREAM_TYPE::STDLOG, "[Log]");
 
