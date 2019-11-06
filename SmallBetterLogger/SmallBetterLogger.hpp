@@ -208,23 +208,26 @@ namespace sblogger
 		Logger(const std::string& format, bool autoFlush)
 			: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
 		{
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?tr.*)")))      
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?tr)"), std::regex_match(m_Format, std::regex(R"(.*%\^tr.*)")) ? "TRACE" : "Trace");
-			
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?dbg.*)")))     
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?dbg)"), std::regex_match(m_Format, std::regex(R"(.*%\^dbg.*)")) ? "DEBUG" : "Debug");
-			
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?inf.*)")))     
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?inf)"), std::regex_match(m_Format, std::regex(R"(.*%\^inf.*)")) ? "INFO" : "Info");
-			
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?wn.*)")))      
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?wn)"), std::regex_match(m_Format, std::regex(R"(.*%\^wn.*)")) ? "WARN" : "Warn");
-			
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?er.*)")))      
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?er)"), std::regex_match(m_Format, std::regex(R"(.*%\^er.*)")) ? "ERROR" : "Error");
-			
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?crt.*)")))     
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?crt)"), std::regex_match(m_Format, std::regex(R"(.*%\^crt.*)")) ? "CRITICAL" : "Critical");
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?(tr|dbg|inf|wn|er|crt).*)")))
+			{
+				if (std::regex_match(m_Format, std::regex(R"(.*%\^?tr.*)")))
+					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?tr)"), std::regex_match(m_Format, std::regex(R"(.*%\^tr.*)")) ? "TRACE" : "Trace");
+
+				if (std::regex_match(m_Format, std::regex(R"(.*%\^?dbg.*)")))
+					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?dbg)"), std::regex_match(m_Format, std::regex(R"(.*%\^dbg.*)")) ? "DEBUG" : "Debug");
+
+				if (std::regex_match(m_Format, std::regex(R"(.*%\^?inf.*)")))
+					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?inf)"), std::regex_match(m_Format, std::regex(R"(.*%\^inf.*)")) ? "INFO" : "Info");
+
+				if (std::regex_match(m_Format, std::regex(R"(.*%\^?wn.*)")))
+					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?wn)"), std::regex_match(m_Format, std::regex(R"(.*%\^wn.*)")) ? "WARN" : "Warn");
+
+				if (std::regex_match(m_Format, std::regex(R"(.*%\^?er.*)")))
+					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?er)"), std::regex_match(m_Format, std::regex(R"(.*%\^er.*)")) ? "ERROR" : "Error");
+
+				if (std::regex_match(m_Format, std::regex(R"(.*%\^?crt.*)")))
+					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?crt)"), std::regex_match(m_Format, std::regex(R"(.*%\^crt.*)")) ? "CRITICAL" : "Critical");
+			}
 		}
 
 		// Initialize a logger, with no format, auto flush (by default)
@@ -249,19 +252,23 @@ namespace sblogger
 
 		// Converts a T value to a string to be used in writing a log
 		template<typename T>
-		inline std::string stringConvert(const T& t);
+		inline std::string stringConvert(const T& t) noexcept;
 
 		// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
-		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items);
+		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items) noexcept;
 
 		// Add indent to string (if it is set)
-		inline std::string addIndent(std::string message);
+		inline std::string addIndent(std::string message) noexcept;
 
 		// Writes string to appropriate stream
 		inline virtual void writeToStream(const std::string&& message) = 0;
 
 		// Replace date format using std::strftime (pre C++20) or std::chrono::format
-		std::string replaceDateFormats();
+		inline std::string replaceDateFormats() noexcept;
+
+		// Replace current logging level in format
+		inline std::string replaceCurrentLevel() noexcept;
+
 
 	public:
 		// Default destructor
@@ -276,7 +283,7 @@ namespace sblogger
 		static inline const LOG_LEVELS GetLoggingLevel() noexcept;
 
 		// Get the current log format
-		inline const std::string GetFormat() const;
+		inline const std::string GetFormat() const noexcept;
 
 		// Set the current log format to "format"
 		inline void SetFormat(const std::string& format);
@@ -285,10 +292,10 @@ namespace sblogger
 		virtual inline void Flush() = 0;
 
 		// Indent (prepend '\t') log, returns the number of indents the final message will contain
-		inline const int Indent();
+		inline const int Indent() noexcept;
 
 		// Dedent (remove '\t') log, returns the number of indents the final message will contain
-		inline const int Dedent();
+		inline const int Dedent() noexcept;
 
 		// Generic Methods: Write a TRACE level message (depending on the specified "LOG_LEVEL") to a stream
 
@@ -408,7 +415,7 @@ namespace sblogger
 
 	// Converts a T value to a string to be used in writing a log
 	template<typename T>
-	inline std::string Logger::stringConvert(const T& t)
+	inline std::string Logger::stringConvert(const T& t) noexcept
 	{
 		std::stringstream ss;
 		ss << t;
@@ -416,7 +423,7 @@ namespace sblogger
 	}
 
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
-	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items)
+	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) noexcept
 	{
 		std::regex placeholder;
 
@@ -426,11 +433,11 @@ namespace sblogger
 			message = std::regex_replace(message, placeholder, items[i]);
 		}
 
-		return addIndent(m_Format.empty() ? message : replaceDateFormats().append(" ").append(message));
+		return addIndent(m_Format.empty() ? message : replaceCurrentLevel().append(replaceDateFormats()).append(" ").append(message));
 	}
 
 	// Add indent to string (if it is set)
-	inline std::string Logger::addIndent(std::string message)
+	inline std::string Logger::addIndent(std::string message) noexcept
 	{
 		for (int i = 0; i < m_IndentCount; i++)
 			message = '\t' + message;
@@ -440,11 +447,12 @@ namespace sblogger
 
 #ifdef SBLOGGER_OLD_DATES
 	// Replace date format using std::strftime (pre C++20)
-	inline std::string Logger::replaceDateFormats()
+	inline std::string Logger::replaceDateFormats() noexcept
 	{
 		std::time_t t = std::time(nullptr);
 		char *buffer = new char[m_Format.size() + 100];
 		std::string result;
+
 		if (std::strftime(buffer, sizeof(char) * (m_Format.size() + 100), m_Format.c_str(), std::localtime(&t)))
 			result = std::string(buffer);
 		else result = m_Format;
@@ -461,14 +469,45 @@ namespace sblogger
 	}
 #endif
 
+	// Replace current logging level in format
+	inline std::string Logger::replaceCurrentLevel() noexcept
+	{
+		if (std::regex_match(m_Format, std::regex(R"(.*%\^?lvl.*)")))
+			switch (s_CurrentLogLevel)
+			{
+			case 0: 
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "TRACE" : "Trace");
+				break;
+			case 1: 
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "DEBUG" : "Debug");
+				break;
+			case 2: 
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "INFO" : "Info");
+				break;
+			case 3: 
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "WARN" : "Warn");
+				break;
+			case 4: 
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "ERROR" : "Error");
+				break;
+			case 5: 
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "CRITICAL" : "Critical");
+				break;
+			default:
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), "");
+				break;
+			}
+		return m_Format;
+	}
+
 	// Indent (prepend '\t') log, returns the number of indents the final message will contain
-	inline const int Logger::Indent()
+	inline const int Logger::Indent() noexcept
 	{
 		return ++m_IndentCount;
 	}
 
 	// Dedent (prepend '\t') log, returns the number of indents the final message will contain
-	inline const int Logger::Dedent()
+	inline const int Logger::Dedent() noexcept
 	{
 		return --m_IndentCount;
 	}
@@ -486,7 +525,7 @@ namespace sblogger
 	}
 
 	// Get the current log format
-	inline const std::string Logger::GetFormat() const
+	inline const std::string Logger::GetFormat() const noexcept
 	{
 		return m_Format;
 	}
@@ -943,27 +982,8 @@ namespace sblogger
 
 		// Overloaded Operators
 
-		// Assignment Operator
-		FileLogger& operator=(const FileLogger& other)
-		{
-			if (this != &other)
-			{
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-				if (!std::regex_match(other.m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(other.m_FilePath);
-#else
-				// Check file path for null, empty, inexistent or whitespace only paths and filenames
-				if (!other.m_FilePath.has_filename() || !other.m_FilePath.has_extension()) throw NullOrEmptyPathException();
-				if (other.m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-				if (!std::filesystem::directory_entry(other.m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
-#endif
-				m_FilePath = other.m_FilePath;
-				m_AutoFlush = other.m_AutoFlush;
-				m_Format = other.m_Format;
-				m_IndentCount = other.m_IndentCount;
-			}
-
-			return *this;
-		}
+		// Assignment Operator (deleted since having two streams for the same file causes certain output not to be writen).
+		FileLogger& operator=(const FileLogger& other) = delete;
 
 		// Public Methods
 

@@ -9,7 +9,7 @@ int main()
 
 	// Declarations (Logger)
 	sblogger::StreamLogger l;
-	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[%Y-%m-%d][%^er]");
+	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[%F %T][%^er]");
 	// Making use of the abstract class
 	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::STREAM_TYPE::STDLOG, "[Log]");
 
