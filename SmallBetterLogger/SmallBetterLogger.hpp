@@ -264,7 +264,7 @@ namespace sblogger
 		inline virtual void writeToStream(const std::string&& message) = 0;
 
 		// Replace date format using std::strftime (pre C++20) or std::chrono::format
-		inline std::string replaceDateFormats() noexcept;
+		inline std::string replaceDateFormats(const std::string& format) noexcept;
 
 		// Replace current logging level in format
 		inline std::string replaceCurrentLevel() noexcept;
@@ -433,7 +433,7 @@ namespace sblogger
 			message = std::regex_replace(message, placeholder, items[i]);
 		}
 
-		return addIndent(m_Format.empty() ? message : replaceCurrentLevel().append(replaceDateFormats()).append(" ").append(message));
+		return addIndent(m_Format.empty() ? message : replaceDateFormats(replaceCurrentLevel()).append(" ").append(message));
 	}
 
 	// Add indent to string (if it is set)
@@ -447,22 +447,22 @@ namespace sblogger
 
 #ifdef SBLOGGER_OLD_DATES
 	// Replace date format using std::strftime (pre C++20)
-	inline std::string Logger::replaceDateFormats() noexcept
+	inline std::string Logger::replaceDateFormats(const std::string& format) noexcept
 	{
 		std::time_t t = std::time(nullptr);
-		char *buffer = new char[m_Format.size() + 100];
+		char *buffer = new char[format.size() + 100];
 		std::string result;
 
-		if (std::strftime(buffer, sizeof(char) * (m_Format.size() + 100), m_Format.c_str(), std::localtime(&t)))
+		if (std::strftime(buffer, sizeof(char) * (format.size() + 100), format.c_str(), std::localtime(&t)))
 			result = std::string(buffer);
-		else result = m_Format;
+		else result = format;
 
 		delete[] buffer;
 		return result;
 	}
 #else
 	// Replace date format using std::chrono::format
-	inline std::string Logger::replaceDateFormats()
+	inline std::string Logger::replaceDateFormats(const std::string& format) noexcept
 	{
 		// Wait for MSVC to catch up
 		return std::string();
@@ -476,26 +476,19 @@ namespace sblogger
 			switch (s_CurrentLogLevel)
 			{
 			case 0: 
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "TRACE" : "Trace");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "TRACE" : "Trace");
 			case 1: 
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "DEBUG" : "Debug");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "DEBUG" : "Debug");
 			case 2: 
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "INFO" : "Info");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "INFO" : "Info");
 			case 3: 
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "WARN" : "Warn");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "WARN" : "Warn");
 			case 4: 
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "ERROR" : "Error");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "ERROR" : "Error");
 			case 5: 
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "CRITICAL" : "Critical");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), std::regex_match(m_Format, std::regex(R"(.*%\^lvl.*)")) ? "CRITICAL" : "Critical");
 			default:
-				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), "");
-				break;
+				return std::regex_replace(m_Format, std::regex(R"(%\^?lvl)"), "");
 			}
 		return m_Format;
 	}
