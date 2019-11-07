@@ -49,7 +49,7 @@ There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging
 ### Logger Methods
 All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
   * ```void Write(...)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
-  * ```void WriteLine(...)``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * ```void WriteLine([...])``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
   * ```int Indent()```/```int Dedent()``` - increase/decrease indent by 1
   * ```void Flush()``` - flushes the stream
 
@@ -109,7 +109,7 @@ World!
 
 ***
 
-If you wanted to stylize your logs a bit, a basic way to do this is to use a format when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
+If you wanted to stylize your logs a bit, a basic way to do this is to use a [format](http://github.com/filipdutescu/small-better-logger/wiki) *(WIP)* when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
@@ -122,6 +122,10 @@ int main()
   logger.WriteLine("Hello World,");
   logger.Dedent();
   logger.Write("This is my logger!");
+  logger.WriteLine();
+  ...
+  logger.SetFormat("[%Y-%m-%d %H-%M-%S][%^err]");
+  logger.Error("This is an error with a custom format.\n");
   ...
 }
 ````
@@ -129,9 +133,11 @@ Output:
 ````console
     [MyLogFormat] Hello World,
 [MyLogFormat] This is my logger!
+[2019-11-07 13:37:00][ERROR] This is an error with a custom format.
+
 ````
 
-> ***Note:*** *You can find basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
+> ***Note:*** *You can find more about the supported formats in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP) and basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) files for details.

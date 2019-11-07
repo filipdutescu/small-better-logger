@@ -138,57 +138,88 @@ namespace sblogger
 		std::string m_Exception;
 
 		// Creates an exception with a given message
-		SBLoggerException(std::string& exception) 
-			: std::exception(exception.c_str()), m_Exception(exception)
-		{ }
+		SBLoggerException(std::string& exception);
 
 		// Creates an exception with a given message
-		SBLoggerException(std::string&& exception)
-			: std::exception(exception.c_str()), m_Exception(exception)
-		{ }
+		SBLoggerException(std::string&& exception);
 
 		// Creates an exception with a given message
-		SBLoggerException(const char* exception)
-			: std::exception(exception), m_Exception(exception)
-		{ }
+		SBLoggerException(const char* exception);
 
 	public:
 		// Throw exception
-		~SBLoggerException() throw() 
-		{ }
+		~SBLoggerException() throw() = default;
 
-		const char* What() const throw() { return m_Exception.c_str(); }
+		// Get error message
+		inline const char* What() const throw() { return m_Exception.c_str(); }
 	};
+
+	// Creates an exception with a given message
+	SBLoggerException::SBLoggerException(std::string& exception)
+		: std::exception(exception.c_str()), m_Exception(exception)
+	{ }
+
+	// Creates an exception with a given message
+	SBLoggerException::SBLoggerException(std::string&& exception)
+		: std::exception(exception.c_str()), m_Exception(exception)
+	{ }
+
+	// Creates an exception with a given message
+	SBLoggerException::SBLoggerException(const char* exception)
+		: std::exception(exception), m_Exception(exception)
+	{ }
+
+	// Get error message
+	inline const char* SBLoggerException::What() const throw() { return m_Exception.c_str(); }
+
+	// NullOrEmptyPathException
 
 	// Thrown when the given file path is null or empty
 	class NullOrEmptyPathException : public SBLoggerException
 	{
 	public:
-		NullOrEmptyPathException() : SBLoggerException("File path cannot be null or empty.")
-		{ }
+		NullOrEmptyPathException();
 	};
+
+	NullOrEmptyPathException::NullOrEmptyPathException() 
+		: SBLoggerException("File path cannot be null or empty.")
+	{ }
+
+	// NullOrWhitespaceNameException
 
 	// Thrown when the given file name is null or whitespace
 	class NullOrWhitespaceNameException : public SBLoggerException
 	{
 	public:
-		NullOrWhitespaceNameException() : SBLoggerException("File name cannot be null or whitespace.")
-		{ }
+		NullOrWhitespaceNameException();
 	};
+
+	NullOrWhitespaceNameException::NullOrWhitespaceNameException() 
+		: SBLoggerException("File name cannot be null or whitespace.")
+	{ }
+
+	// InvalidFilePathException
 
 	// Thrown when the specified file could not be openned
 	class InvalidFilePathException : public SBLoggerException
 	{
 	public:
-		InvalidFilePathException() : SBLoggerException("Cannot open log file to write to.")
-		{ }
-
-		InvalidFilePathException(const std::string& filePath) : SBLoggerException("Cannot open log file " + filePath + '.')
-		{ }
-
-		InvalidFilePathException(const std::string&& filePath) : SBLoggerException("Cannot open log file " + filePath + '.')
-		{ }
+		InvalidFilePathException();
+		InvalidFilePathException(const std::string& filePath);
+		InvalidFilePathException(const std::string&& filePath);
 	};
+
+	InvalidFilePathException::InvalidFilePathException() 
+		: SBLoggerException("Cannot open log file to write to.")
+	{ }
+
+	InvalidFilePathException::InvalidFilePathException(const std::string& filePath)
+		: SBLoggerException("Cannot open log file " + filePath + '.')
+	{ }
+
+	InvalidFilePathException::InvalidFilePathException(const std::string&& filePath)
+		: SBLoggerException("Cannot open log file " + filePath + '.')
+	{ }
 
 	// Classes' Definitions
 
@@ -205,70 +236,40 @@ namespace sblogger
 		// Protected constructors
 
 		// Initialize a logger, with a format, auto flush (by default)
-		Logger(const std::string& format, bool autoFlush)
-			: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
-		{
-			if (std::regex_match(m_Format, std::regex(R"(.*%\^?(tr|dbg|inf|wn|er|crt).*)")))
-			{
-				if (std::regex_match(m_Format, std::regex(R"(.*%\^?tr.*)")))
-					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?tr)"), std::regex_match(m_Format, std::regex(R"(.*%\^tr.*)")) ? "TRACE" : "Trace");
-
-				if (std::regex_match(m_Format, std::regex(R"(.*%\^?dbg.*)")))
-					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?dbg)"), std::regex_match(m_Format, std::regex(R"(.*%\^dbg.*)")) ? "DEBUG" : "Debug");
-
-				if (std::regex_match(m_Format, std::regex(R"(.*%\^?inf.*)")))
-					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?inf)"), std::regex_match(m_Format, std::regex(R"(.*%\^inf.*)")) ? "INFO" : "Info");
-
-				if (std::regex_match(m_Format, std::regex(R"(.*%\^?wn.*)")))
-					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?wn)"), std::regex_match(m_Format, std::regex(R"(.*%\^wn.*)")) ? "WARN" : "Warn");
-
-				if (std::regex_match(m_Format, std::regex(R"(.*%\^?er.*)")))
-					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?er)"), std::regex_match(m_Format, std::regex(R"(.*%\^er.*)")) ? "ERROR" : "Error");
-
-				if (std::regex_match(m_Format, std::regex(R"(.*%\^?crt.*)")))
-					m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?crt)"), std::regex_match(m_Format, std::regex(R"(.*%\^crt.*)")) ? "CRITICAL" : "Critical");
-			}
-		}
+		Logger(const std::string& format, bool autoFlush);
 
 		// Initialize a logger, with no format, auto flush (by default)
-		Logger(bool autoFlush)
-			: m_Format(""), m_AutoFlush(autoFlush), m_IndentCount(0)
-		{ }
+		Logger(bool autoFlush) noexcept;
 
 		// Copy constructor
-		Logger(const Logger& other)
-			: m_Format(other.m_Format), m_AutoFlush(other.m_AutoFlush), m_IndentCount(other.m_IndentCount)
-		{ }
+		Logger(const Logger& other) noexcept;
 
 		// Move constructor
-		Logger(Logger&& other) noexcept
-		{
-			m_Format = other.m_Format;
-			m_AutoFlush = other.m_AutoFlush;
-			m_IndentCount = other.m_IndentCount;
-		}
+		Logger(Logger&& other) noexcept;
 
 		// Protected methods
+
+		// Writes string to appropriate stream
+		inline virtual void writeToStream(const std::string&& message) = 0;
 
 		// Converts a T value to a string to be used in writing a log
 		template<typename T>
 		inline std::string stringConvert(const T& t) noexcept;
 
+		// Add indent to string (if it is set)
+		inline std::string addIndent(std::string& message) noexcept;
+
+		// Add padding to string (if padding format exists)
+		inline std::string addPadding(std::string message) noexcept; // TODO
+
 		// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items) noexcept;
-
-		// Add indent to string (if it is set)
-		inline std::string addIndent(std::string message) noexcept;
-
-		// Writes string to appropriate stream
-		inline virtual void writeToStream(const std::string&& message) = 0;
 
 		// Replace date format using std::strftime (pre C++20) or std::chrono::format
 		inline std::string replaceDateFormats(const std::string& format) noexcept;
 
 		// Replace current logging level in format
 		inline std::string replaceCurrentLevel() noexcept;
-
 
 	public:
 		// Default destructor
@@ -413,6 +414,50 @@ namespace sblogger
 	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::TRACE;
 #endif
 
+	// Initialize a logger, with a format, auto flush (by default)
+	Logger::Logger(const std::string& format, bool autoFlush)
+		: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
+	{
+		if (std::regex_match(m_Format, std::regex(R"(.*%\^?(tr|dbg|inf|wn|er|crt).*)")))
+		{
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?tr.*)")))
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?tr)"), std::regex_match(m_Format, std::regex(R"(.*%\^tr.*)")) ? "TRACE" : "Trace");
+
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?dbg.*)")))
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?dbg)"), std::regex_match(m_Format, std::regex(R"(.*%\^dbg.*)")) ? "DEBUG" : "Debug");
+
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?inf.*)")))
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?inf)"), std::regex_match(m_Format, std::regex(R"(.*%\^inf.*)")) ? "INFO" : "Info");
+
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?wn.*)")))
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?wn)"), std::regex_match(m_Format, std::regex(R"(.*%\^wn.*)")) ? "WARN" : "Warn");
+
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?er.*)")))
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?er)"), std::regex_match(m_Format, std::regex(R"(.*%\^er.*)")) ? "ERROR" : "Error");
+
+			if (std::regex_match(m_Format, std::regex(R"(.*%\^?crt.*)")))
+				m_Format = std::regex_replace(m_Format, std::regex(R"(%\^?crt)"), std::regex_match(m_Format, std::regex(R"(.*%\^crt.*)")) ? "CRITICAL" : "Critical");
+		}
+	}
+
+	// Initialize a logger, with no format, auto flush (by default)
+	Logger::Logger(bool autoFlush) noexcept
+		: m_Format(""), m_AutoFlush(autoFlush), m_IndentCount(0)
+	{ }
+
+	// Copy constructor
+	Logger::Logger(const Logger& other) noexcept
+		: m_Format(other.m_Format), m_AutoFlush(other.m_AutoFlush), m_IndentCount(other.m_IndentCount)
+	{ }
+
+	// Move constructor
+	Logger::Logger(Logger&& other) noexcept
+	{
+		m_Format = other.m_Format;
+		m_AutoFlush = other.m_AutoFlush;
+		m_IndentCount = other.m_IndentCount;
+	}
+
 	// Converts a T value to a string to be used in writing a log
 	template<typename T>
 	inline std::string Logger::stringConvert(const T& t) noexcept
@@ -420,6 +465,15 @@ namespace sblogger
 		std::stringstream ss;
 		ss << t;
 		return ss.str();
+	}
+
+	// Add indent to string (if it is set)
+	inline std::string Logger::addIndent(std::string& message) noexcept
+	{
+		for (int i = 0; i < m_IndentCount; i++)
+			message = '\t' + message;
+
+		return  message;
 	}
 
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
@@ -434,15 +488,6 @@ namespace sblogger
 		}
 
 		return addIndent(m_Format.empty() ? message : replaceDateFormats(replaceCurrentLevel()).append(" ").append(message));
-	}
-
-	// Add indent to string (if it is set)
-	inline std::string Logger::addIndent(std::string message) noexcept
-	{
-		for (int i = 0; i < m_IndentCount; i++)
-			message = '\t' + message;
-
-		return  message;
 	}
 
 #ifdef SBLOGGER_OLD_DATES
@@ -731,70 +776,36 @@ namespace sblogger
 
 		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
 		// By default uses STREAM_TYPE::STDOUT and no format or auto flush
-		StreamLogger(const STREAM_TYPE& type = STREAM_TYPE::STDOUT, const std::string& format = std::string(), bool autoFlush = false)
-			: Logger(format, autoFlush), m_StreamType(type)
-		{ }
+		StreamLogger(const STREAM_TYPE& type = STREAM_TYPE::STDOUT, const std::string& format = std::string(), bool autoFlush = false);
 
 		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
-		StreamLogger(const std::string& format, bool autoFlush = false)
-			: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
-		{ }
+		StreamLogger(const std::string& format, bool autoFlush = false);
 
 		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
-		StreamLogger(const char* format, bool autoFlush = false)
-			: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
-		{ }
+		StreamLogger(const char* format, bool autoFlush = false);
 
 		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
-		StreamLogger(bool autoFlush)
-			: Logger(std::string(), autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
-		{ }
+		StreamLogger(bool autoFlush) noexcept;
 
 		// Copy constructor
 
 		// Creates a Logger instance from an already existing one
-		StreamLogger(const StreamLogger& other)
-			: Logger(other), m_StreamType(other.m_StreamType)
-		{ }
+		StreamLogger(const StreamLogger& other) noexcept;
 
 		// Move constructor
 
 		// Creates a Logger instance from another
-		StreamLogger(StreamLogger&& other) noexcept
-			: Logger(other)
-		{
-			m_AutoFlush = other.m_AutoFlush;
-			m_StreamType = other.m_StreamType;
-		}
+		StreamLogger(StreamLogger&& other) noexcept;
 
 		// Destructor
 		
 		// Flush stream before deletion
-		~StreamLogger() override
-		{ 
-			switch (m_StreamType)
-			{
-			case STREAM_TYPE::STDERR:   std::cerr.flush();       break;
-			case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
-			case STREAM_TYPE::STDOUT:   std::cout.flush();       break;
-			}
-		}
+		~StreamLogger() override;
 
 		// Overloaded Operators
 
 		// Assignment Operator
-		StreamLogger& operator=(const StreamLogger& other) noexcept
-		{
-			if (this != &other)
-			{
-				m_AutoFlush = other.m_AutoFlush;
-				m_Format = other.m_Format;
-				m_IndentCount = other.m_IndentCount;
-				m_StreamType = other.m_StreamType;
-			}
-
-			return *this;
-		}
+		StreamLogger& operator=(const StreamLogger& other) noexcept;
 
 		// Public Methods
 
@@ -804,6 +815,75 @@ namespace sblogger
 		// Change the logger's stream type (to a different "STREAM_TYPE")
 		inline void SetStreamType(STREAM_TYPE streamType);
 	};
+
+	// Constructors and destructors
+
+	// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
+	// By default uses STREAM_TYPE::STDOUT and no format or auto flush
+	StreamLogger::StreamLogger(const STREAM_TYPE& type = STREAM_TYPE::STDOUT, const std::string& format = std::string(), bool autoFlush = false)
+		: Logger(format, autoFlush), m_StreamType(type)
+	{ }
+
+	// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
+	StreamLogger::StreamLogger(const std::string& format, bool autoFlush = false)
+		: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+	{ }
+
+	// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
+	StreamLogger::StreamLogger(const char* format, bool autoFlush = false)
+		: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+	{ }
+
+	// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
+	StreamLogger::StreamLogger(bool autoFlush) noexcept
+		: Logger(std::string(), autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+	{ }
+
+	// Copy constructor
+
+	// Creates a Logger instance from an already existing one
+	StreamLogger::StreamLogger(const StreamLogger& other) noexcept
+		: Logger(other), m_StreamType(other.m_StreamType)
+	{ }
+
+	// Move constructor
+
+	// Creates a Logger instance from another
+	StreamLogger::StreamLogger(StreamLogger&& other) noexcept
+		: Logger(other)
+	{
+		m_AutoFlush = other.m_AutoFlush;
+		m_StreamType = other.m_StreamType;
+	}
+
+	// Destructor
+
+	// Flush stream before deletion
+	StreamLogger::~StreamLogger()
+	{
+		switch (m_StreamType)
+		{
+		case STREAM_TYPE::STDERR:   std::cerr.flush();       break;
+		case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
+		case STREAM_TYPE::STDOUT:   std::cout.flush();       break;
+		}
+	}
+
+	// Overloaded Operators
+
+	// Assignment Operator
+	StreamLogger& StreamLogger::operator=(const StreamLogger& other) noexcept
+	{
+		if (this != &other)
+		{
+			m_AutoFlush = other.m_AutoFlush;
+			m_Format = other.m_Format;
+			m_IndentCount = other.m_IndentCount;
+			m_StreamType = other.m_StreamType;
+		}
+
+		return *this;
+	}
 
 	// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
 	inline void StreamLogger::writeToStream(const std::string&& str)
@@ -855,123 +935,30 @@ namespace sblogger
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default there is no formatting and auto flush is set to true
-		FileLogger(const char* filePath, const std::string& format = std::string(), bool autoFlush = true) 
-			: Logger(format, autoFlush)
-		{
-			if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
-
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			m_FilePath = filePath;
-			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
-#else
-			m_FilePath = std::filesystem::path(filePath);
-			// Check file path for null, empty, inexistent or whitespace only paths and filenames
-			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
-			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-			if(!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
-#endif
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
-#else
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
-#endif
-		}
+		FileLogger(const char* filePath, const std::string& format = std::string(), bool autoFlush = true);
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default there is no formatting and auto flush is set to true
-		FileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true) 
-			: Logger(format, autoFlush)
-		{
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			m_FilePath = filePath;
-			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
-#else
-			m_FilePath = std::filesystem::path(filePath);
-			// Check file path for null, empty, inexistent or whitespace only paths and filenames
-			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
-			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
-#endif
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
-#else
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
-#endif
-		}
+		FileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true);
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default there is no formatting and auto flush is set to true
-		FileLogger(const std::string&& filePath, const std::string& format = std::string(), bool autoFlush = true) 
-			: Logger(format, autoFlush)
-		{
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			m_FilePath = filePath;
-			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
-#else
-			m_FilePath = std::filesystem::path(filePath);
-			// Check file path for null, empty, inexistent or whitespace only paths and filenames
-			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
-			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
-#endif
-			m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
-
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
-#else
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
-#endif
-		}
+		FileLogger(const std::string&& filePath, const std::string& format = std::string(), bool autoFlush = true);
 
 		// Copy constructor
-		// Creates a FileLogger instance from an already existing one
-		FileLogger(const FileLogger& other)
-			: Logger(other)
-		{
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			m_FilePath = other.m_FilePath;
-			if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
-#else
-			m_FilePath = std::filesystem::path(other.m_FilePath);
-			// Check file path for null, empty, inexistent or whitespace only paths and filenames
-			if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
-			if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-			if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
-#endif
-			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
 
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
-#else
-			if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
-#endif
-		}
+		// Creates a FileLogger instance from an already existing one
+		FileLogger(const FileLogger& other);
 
 		// Move constructor
 
 		// Creates a FileLogger instance from another one
-		FileLogger(FileLogger&& other) noexcept
-			: Logger(other)
-		{
-			m_FilePath = std::move(other.m_FilePath);
-			m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
-		}
+		FileLogger(FileLogger&& other) noexcept;
 
 		// Destructor
 
 		// Flush and close stream if open
-		~FileLogger() override
-		{
-			if (m_FileStream.is_open())
-			{
-				m_FileStream.flush();
-				m_FileStream.close();
-			}
-		}
+		~FileLogger() override;
 
 		// Overloaded Operators
 
@@ -986,6 +973,128 @@ namespace sblogger
 		// Clear log file
 		inline void ClearLogs();
 	};
+
+	// Constructors
+
+	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// By default there is no formatting and auto flush is set to true
+	FileLogger::FileLogger(const char* filePath, const std::string& format = std::string(), bool autoFlush = true)
+		: Logger(format, autoFlush)
+	{
+		if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
+
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		m_FilePath = filePath;
+		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
+		m_FilePath = std::filesystem::path(filePath);
+		// Check file path for null, empty, inexistent or whitespace only paths and filenames
+		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+#endif
+		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
+	}
+
+	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// By default there is no formatting and auto flush is set to true
+	FileLogger::FileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true)
+		: Logger(format, autoFlush)
+	{
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		m_FilePath = filePath;
+		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
+		m_FilePath = std::filesystem::path(filePath);
+		// Check file path for null, empty, inexistent or whitespace only paths and filenames
+		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+#endif
+		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
+	}
+
+	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// By default there is no formatting and auto flush is set to true
+	FileLogger::FileLogger(const std::string&& filePath, const std::string& format = std::string(), bool autoFlush = true)
+		: Logger(format, autoFlush)
+	{
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		m_FilePath = filePath;
+		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
+		m_FilePath = std::filesystem::path(filePath);
+		// Check file path for null, empty, inexistent or whitespace only paths and filenames
+		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+#endif
+		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
+	}
+
+	// Copy constructor
+	// Creates a FileLogger instance from an already existing one
+	FileLogger::FileLogger(const FileLogger& other)
+		: Logger(other)
+	{
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		m_FilePath = other.m_FilePath;
+		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
+#else
+		m_FilePath = std::filesystem::path(other.m_FilePath);
+		// Check file path for null, empty, inexistent or whitespace only paths and filenames
+		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
+		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
+#endif
+		m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
+
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
+#else
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+#endif
+	}
+
+	// Move constructor
+
+	// Creates a FileLogger instance from another one
+	FileLogger::FileLogger(FileLogger&& other) noexcept
+		: Logger(other)
+	{
+		m_FilePath = std::move(other.m_FilePath);
+		m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
+	}
+
+	// Destructor
+
+	// Flush and close stream if open
+	FileLogger::~FileLogger()
+	{
+		if (m_FileStream.is_open())
+		{
+			m_FileStream.flush();
+			m_FileStream.close();
+		}
+	}
 
 	// Writes string to file stream and flush if auto flush is set
 	inline void FileLogger::writeToStream(const std::string&& str)
