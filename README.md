@@ -23,19 +23,26 @@ All you need to do if you wish to use **SBLogger** (in a C++ project) is to clon
 #### Using Older C++ Standards
 The **SBLogger** library makes use of the predefined [```__cplusplus```](https://en.cppreference.com/w/cpp/preprocessor/replace#Predefined_macros) macro, which provides the compiler version, to auto-detect which code needs to change in order for it to be used in the project it is included in.
 
-If you are using a pre **C++17** (**C++11** or **C++14**) compiler which does not support/properly implement the [```__cplusplus```](https://en.cppreference.com/w/cpp/preprocessor/replace#Predefined_macros) macro (such as **MSVC**), you can define the macro ```SBLOGGER_LEGACY```, in order to use this library. Please define it either before including **SBLogger** or on the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as shown bellow.
+If you are using a pre **C++17** (**C++11** or **C++14**) compiler which does not support/properly implement the [```__cplusplus```](https://en.cppreference.com/w/cpp/preprocessor/replace#Predefined_macros) macro (such as **MSVC**), you should define the macro ```SBLOGGER_LEGACY```, in order to use this library. If you are using a pre **C++20** compiler that lacks support for the aforementioned [```__cplusplus```](https://en.cppreference.com/w/cpp/preprocessor/replace#Predefined_macros), you should define the ```SBLOGGER_OLD_DATES``` macro, in order to make use of this library.
+
+Please define them either before including **SBLogger** or in the first line of the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file, as shown bellow.
+
 ````cpp
-#define SBLOGGER_LEGACY
+#define SBLOGGER_LEGACY     // Pre C++17 Compiler
+#define SBLOGGER_OLD_DATES  // Pre C++20 Compiler
 ````
 > ***Note:*** *For **MSVC** you can fix this problem, by setting up the **`/Zc:__cplusplus`** compiler option. If you do not know how to do this, please refer to the following [Microsoft guide](https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019#to-set-this-compiler-option-in-visual-studio) for setting it up.*
 
-> ***Note:*** *The library assumes by default, that you are using a C++17 compiler. In that case, no macros need to be defined.*
+> ***Note:*** *The library assumes by default, that you are using a C++17 compiler.*
 
 #### Cross-Platform Info
 In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
   * ```#define SBLOGGER_NIX``` - for **Unix/Linux** and **Mac OS X+**
   * ```#define SBLOGGER_OS9``` - for **Mac OS 9 and lower**
+
 > ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
+
+#### Default Log Level (WIP)
 
 ## Usage
 All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
@@ -43,6 +50,7 @@ All the code which is related to the **SBL** is located in the ```sblogger``` na
   * **```sblogger::FileLogger```** (which writes to a file) 
 
 There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. 
+
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
 ### Logger Methods
