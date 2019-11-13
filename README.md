@@ -1,12 +1,12 @@
 # Small, Better Logger
-A small, better logger for C++ (and any project that wishes to use it as ```.lib```/```.dll```) 
+A small, better logger for C++ 
 
 ## Getting Started
-This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library (```.lib``` or ```.dll```).
+This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library.
 > ***Note:*** *From now on, I will refer to this library as ***SBLogger***.*
 
 ### Prerequisites
-In order to use this library, you will need to compile using a **C++17 (or later)** compiler. For compilers pre **C++17** (**C++11** or **C++14**), please refer to [Setting Up](README.md#Setting-Up).
+This library was developed using **C++17** and thus you will have the best experience using a **C++17 (or later)** compiler. For compilers pre **C++17** (**C++11** or **C++14**) or post **C++17** (as of this writing, **C++20**), please refer to [Setting Up](README.md#Setting-Up).
 
 ### Including as Source Code
 All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
@@ -17,7 +17,6 @@ All you need to do if you wish to use **SBLogger** (in a C++ project) is to clon
 ````
 
 ### Including as Library (WIP)
-For other projects, you need to compile it to either a ```.lib``` or a ```.dll``` library and link it in the compiler specific way of your prefered language.
 
 ### Setting Up
 
