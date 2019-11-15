@@ -10,6 +10,10 @@ int main()
 	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[%F %T][%^er]");					// Set stream type and custom format
 	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::STREAM_TYPE::STDLOG, "[Log]");  // Making use of the abstract class
 
+	// Declarations (FileLogger)
+	sblogger::FileLogger fileLogger("example.log", "[File Log]");
+	//sblogger::FileLogger fileLogger2("   .txt", "[File Log]");	// Will throw error since filename is empty
+
 	// Basic calls (Logger)
 	l.WriteLine("This is a normal log to STDOUT.");
 	l.WriteLine();
@@ -24,16 +28,12 @@ int main()
 	logErr.WriteLine("stderr");
 	logLog->WriteLine("stdlog");
 
-	// Declarations (FileLogger)
-	sblogger::FileLogger fileLogger("example.log", "[File Log]");
-	//sblogger::FileLogger fileLogger2("   .txt", "[File Log]");	// Will throw error since filename is empty
-
 	// Basic calls (FileLogger)
 	fileLogger.ClearLogs();						// This will clear the log file utilised by the FileLogger
 	fileLogger.WriteLine("This is a test.");	// All methods previously shown can also be used with files
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
-
+	
 	delete logLog;
 	std::cin.get();
 
