@@ -254,22 +254,22 @@ namespace sblogger
 
 		// Converts a T value to a string to be used in writing a log
 		template<typename T>
-		inline std::string stringConvert(const T& t) noexcept;
+		inline std::string stringConvert(const T& t) const noexcept;
 
 		// Add indent to string (if it is set)
-		inline void addIndent(std::string& message) noexcept;
+		inline void addIndent(std::string& message) const noexcept;
 
 		// Add padding to string (if padding format exists)
-		inline void addPadding(std::string& message) noexcept;
+		inline void addPadding(std::string& message) const noexcept;
 
 		// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
-		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items) noexcept;
+		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept;
 
 		// Replace current logging level in format
-		inline void replaceCurrentLevel(std::string& message) noexcept;
+		inline void replaceCurrentLevel(std::string& message) const noexcept;
 
 		// Replace date format using std::strftime (pre C++20) or std::chrono::format
-		inline void replaceDateFormats(std::string& message) noexcept;
+		inline void replaceDateFormats(std::string& message) const noexcept;
 
 
 	public:
@@ -465,7 +465,7 @@ namespace sblogger
 
 	// Converts a T value to a string to be used in writing a log
 	template<typename T>
-	inline std::string Logger::stringConvert(const T& t) noexcept
+	inline std::string Logger::stringConvert(const T& t) const noexcept
 	{
 		std::stringstream ss;
 		ss << t;
@@ -473,14 +473,14 @@ namespace sblogger
 	}
 
 	// Add indent to string (if it is set)
-	inline void Logger::addIndent(std::string& message) noexcept
+	inline void Logger::addIndent(std::string& message) const noexcept
 	{
 		for (int i = 0; i < m_IndentCount; i++)
 			message = '\t' + message;
 	}
 
 	// Add padding to string (if padding format exists)
-	inline void Logger::addPadding(std::string& message) noexcept
+	inline void Logger::addPadding(std::string& message) const noexcept
 	{
 		/*while (message.find_first_of("") != std::string::npos)
 		{
@@ -488,7 +488,7 @@ namespace sblogger
 	}
 
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
-	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) noexcept
+	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept
 	{
 		std::string pholder;
 		std::size_t pholderPosition;
@@ -505,18 +505,55 @@ namespace sblogger
 			return message;
 		}
 		
-		message = m_Format + " " + message;
-		addIndent(message);
+		addIndent(message = m_Format + " " + message);
 		addPadding(message);
 		replaceCurrentLevel(message);
 		replaceDateFormats(message);
 		return message;
 	}
 
-#ifdef SBLOGGER_OLD_DATES
-	// Replace date format using std::strftime (pre C++20)
-	inline void Logger::replaceDateFormats(std::string& message) noexcept
+	// Replace current logging level in format
+	inline void Logger::replaceCurrentLevel(std::string& message) const noexcept
 	{
+		const std::size_t placeholderPosition = message.find("lvl");
+		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1] == '%' || message[placeholderPosition - 2] == '%'))
+			switch (s_CurrentLogLevel)
+			{
+			case LOG_LEVELS::TRACE:
+				message[placeholderPosition - 1] == '^' ?
+					message.replace(placeholderPosition - 2, 5, "TRACE") : message.replace(placeholderPosition - 2, 4, "Trace");
+				break;
+			case LOG_LEVELS::DEBUG:
+				message[placeholderPosition - 1] == '^' ?
+					message.replace(placeholderPosition - 2, 5, "DEBUG") : message.replace(placeholderPosition - 2, 4, "Debug");
+				break;
+			case LOG_LEVELS::INFO:
+				message[placeholderPosition - 1] == '^' ?
+					message.replace(placeholderPosition - 2, 5, "INFO") : message.replace(placeholderPosition - 2, 4, "Info");
+				break;
+			case LOG_LEVELS::WARN:
+				message[placeholderPosition - 1] == '^' ?
+					message.replace(placeholderPosition - 2, 5, "WARN") : message.replace(placeholderPosition - 2, 4, "Warn");
+				break;
+			case LOG_LEVELS::ERROR:
+				message[placeholderPosition - 1] == '^' ?
+					message.replace(placeholderPosition - 2, 5, "ERROR") : message.replace(placeholderPosition - 2, 4, "Error");
+				break;
+			case LOG_LEVELS::CRITICAL:
+				message[placeholderPosition - 1] == '^' ?
+					message.replace(placeholderPosition - 2, 5, "CRITICAL") : message.replace(placeholderPosition - 2, 4, "Critical");
+				break;
+			default:
+				message = "";
+				break;
+			}
+	}
+
+	// Replace date format using std::strftime (pre C++20) or std::chrono::format
+	inline void Logger::replaceDateFormats(std::string& message) const noexcept
+	{
+		// Replace date format using std::strftime (pre C++20)
+#ifdef SBLOGGER_OLD_DATES
 		std::time_t t = std::time(nullptr);
 		std::size_t messageLength = message.size();
 		char* buffer = new char[messageLength + 100]{ 0 };
@@ -526,51 +563,10 @@ namespace sblogger
 			message = std::string(buffer);
 
 		delete[] buffer;
-	}
 #else
-	// Replace date format using std::chrono::format
-	inline void Logger::replaceDateFormats(std::string& message) noexcept
-	{
+		// Replace date format using std::chrono::format
 		// Wait for MSVC to catch up
-		return std::string();
-	}
 #endif
-
-	// Replace current logging level in format
-	inline void Logger::replaceCurrentLevel(std::string& message) noexcept
-	{
-		const std::size_t placeholderPosition = message.find("lvl");
-		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1] == '%' || message[placeholderPosition - 2] == '%'))
-			switch (s_CurrentLogLevel)
-			{
-			case LOG_LEVELS::TRACE: 
-				message = message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "TRACE")    : message.replace(placeholderPosition - 2, 4, "Trace");
-				break;
-			case LOG_LEVELS::DEBUG:
-				message = message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "DEBUG")    : message.replace(placeholderPosition - 2, 4, "Debug");
-				break;
-			case LOG_LEVELS::INFO:
-				message = message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "INFO")     : message.replace(placeholderPosition - 2, 4, "Info");
-				break;
-			case LOG_LEVELS::WARN:
-				message = message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "WARN")     : message.replace(placeholderPosition - 2, 4, "Warn");
-				break;
-			case LOG_LEVELS::ERROR:
-				message = message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "ERROR")    : message.replace(placeholderPosition - 2, 4, "Error");
-				break;
-			case LOG_LEVELS::CRITICAL:
-				message = message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "CRITICAL")	: message.replace(placeholderPosition - 2, 4, "Critical");
-				break;
-			default: 
-				message = "";
-				break;
-			}
 	}
 
 	// Indent (prepend '\t') log, returns the number of indents the final message will contain
