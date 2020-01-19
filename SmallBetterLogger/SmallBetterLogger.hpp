@@ -419,7 +419,11 @@ namespace sblogger
 	inline Logger::Logger(const std::string& format, bool autoFlush)
 		: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
 	{
+#ifdef SBLOGGER_LEGACY
+		std::string placeholder = "tr";
+#else
 		std::string_view placeholder = "tr";
+#endif
 		std::size_t placeholderPosition = m_Format.find(placeholder);
 		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
 			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "TRACE") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Trace");
@@ -505,10 +509,12 @@ namespace sblogger
 			return message;
 		}
 		
-		addIndent(message = m_Format + " " + message);
+		message = (pholderPosition = m_Format.find("%msg")) != std::string::npos ? std::string(m_Format).replace(pholderPosition, 4, message) : (m_Format + ' ' + message);
+		addIndent(message);
 		addPadding(message);
 		replaceCurrentLevel(message);
 		replaceDateFormats(message);
+
 		return message;
 	}
 
@@ -1026,7 +1032,8 @@ namespace sblogger
 		// Check file path for null, empty, inexistent or whitespace only paths and filenames
 		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+		auto parentPath = m_FilePath.parent_path();
+		if (!parentPath.empty() && !std::filesystem::directory_entry(parentPath).exists()) throw InvalidFilePathException(filePath);
 #endif
 		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
 
@@ -1196,4 +1203,7 @@ namespace sblogger
 		}
 	}
 }
+
+// TODO: Macros for logging. Adds support for file, line and function info in logs. 
+//#define TEST __FILE__
 #endif

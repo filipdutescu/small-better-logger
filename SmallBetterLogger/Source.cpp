@@ -34,6 +34,12 @@ int main()
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
 	
+	// ======================================= TODELETE =======================================
+	sblogger::StreamLogger testingLogger("[%Y %T] %msg [%^lvl]");
+
+	testingLogger.WriteLine("Test");
+	// ===================================== END TODELETE =====================================
+
 	delete logLog;
 	std::cin.get();
 
