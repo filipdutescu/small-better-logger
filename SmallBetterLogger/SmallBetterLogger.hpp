@@ -489,6 +489,36 @@ namespace sblogger
 		/*while (message.find_first_of("") != std::string::npos)
 		{
 		}*/
+#ifdef SBLOGGER_LEGACY
+		std::string digits = "1234567890";
+#else
+		std::string_view digits = "1234567890";
+#endif
+		size_t placeHolderPosition;
+		std::string currentPadding;
+		size_t offset = 0u, noDigits;
+		int noSpaces;
+		char* spaces;
+
+		while ((placeHolderPosition = message.find_first_of(digits, offset)) != std::string::npos)
+		{
+			if (message[placeHolderPosition - 1] != '%')
+				offset += placeHolderPosition + 1;
+			else
+			{
+				currentPadding = message.substr(placeHolderPosition, message.find_first_not_of(digits, placeHolderPosition) - placeHolderPosition);
+				noDigits = currentPadding.size();
+				noSpaces = std::stoi(currentPadding);
+
+				spaces = new char[noSpaces + 1];
+				for (int i = 0; i < noSpaces; ++i)
+					spaces[i] = ' ';
+				spaces[noSpaces] = '\0';
+
+				message.replace(placeHolderPosition - 1u, noDigits + 1u, spaces);
+				delete[] spaces;
+			}
+		}
 	}
 
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
