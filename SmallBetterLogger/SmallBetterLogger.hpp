@@ -498,7 +498,6 @@ namespace sblogger
 		std::string currentPadding;
 		size_t offset = 0u, noDigits;
 		int noSpaces;
-		char* spaces;
 
 		while ((placeHolderPosition = message.find_first_of(digits, offset)) != std::string::npos)
 		{
@@ -510,13 +509,7 @@ namespace sblogger
 				noDigits = currentPadding.size();
 				noSpaces = std::stoi(currentPadding);
 
-				spaces = new char[noSpaces + 1];
-				for (int i = 0; i < noSpaces; ++i)
-					spaces[i] = ' ';
-				spaces[noSpaces] = '\0';
-
-				message.replace(placeHolderPosition - 1u, noDigits + 1u, spaces);
-				delete[] spaces;
+				message.replace(placeHolderPosition - 1u, noDigits + 1u, std::stoi(currentPadding), ' ');
 			}
 		}
 	}
