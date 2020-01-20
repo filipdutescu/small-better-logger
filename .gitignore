@@ -2,5 +2,5 @@
 Debug/
 **/Debug/
 *.vcxproj
-*..vcxproj.filters
-*..vcxproj.user
+*.vcxproj.filters
+*.vcxproj.user
