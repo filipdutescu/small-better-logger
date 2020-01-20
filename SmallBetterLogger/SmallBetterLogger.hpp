@@ -486,9 +486,6 @@ namespace sblogger
 	// Add padding to string (if padding format exists)
 	inline void Logger::addPadding(std::string& message) const noexcept
 	{
-		/*while (message.find_first_of("") != std::string::npos)
-		{
-		}*/
 #ifdef SBLOGGER_LEGACY
 		std::string digits = "1234567890";
 #else
