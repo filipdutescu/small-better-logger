@@ -516,7 +516,7 @@ namespace sblogger
 	{
 		std::string pholder;
 		std::size_t pholderPosition;
-		for (unsigned int i = 0; i < items.size(); i++)
+		for (size_t i = 0; i < items.size(); ++i)
 		{
 			pholder = "{" + std::to_string(i) + "}";
 			while ((pholderPosition = message.find(pholder)) != std::string::npos)
