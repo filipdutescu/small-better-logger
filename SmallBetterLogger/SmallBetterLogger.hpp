@@ -425,28 +425,28 @@ namespace sblogger
 		std::string_view placeholder = "tr";
 #endif
 		std::size_t placeholderPosition = m_Format.find(placeholder);
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
-			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "TRACE") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Trace");
+		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
 		
 		placeholderPosition = m_Format.find(placeholder = "dbg");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
-			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "DEBUG") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Debug");
+		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "DEBUG") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Debug");
 
 		placeholderPosition = m_Format.find(placeholder = "inf");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
-			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "INFO") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Info");
+		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "INFO") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Info");
 
 		placeholderPosition = m_Format.find(placeholder = "wn");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
-			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "WARN") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Warn");
+		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "WARN") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Warn");
 
 		placeholderPosition = m_Format.find(placeholder = "er");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
-			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "ERROR") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Error");
+		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "ERROR") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Error");
 
 		placeholderPosition = m_Format.find(placeholder = "crt");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1] == '%' || m_Format[placeholderPosition - 2] == '%'))
-			m_Format[placeholderPosition - 1] == '^' ? m_Format.replace(placeholderPosition - 2, placeholder.size() + 2, "CRITICAL") : m_Format.replace(placeholderPosition - 1, placeholder.size() + 2, "Critical");
+		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "CRITICAL") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Critical");
 		}
 
 	// Initialize a logger, with no format, auto flush (by default)
@@ -479,7 +479,7 @@ namespace sblogger
 	// Add indent to string (if it is set)
 	inline void Logger::addIndent(std::string& message) const noexcept
 	{
-		for (int i = 0; i < m_IndentCount; i++)
+		for (size_t i = 0u; i < m_IndentCount; ++i)
 			message = '\t' + message;
 	}
 
@@ -487,26 +487,44 @@ namespace sblogger
 	inline void Logger::addPadding(std::string& message) const noexcept
 	{
 #ifdef SBLOGGER_LEGACY
-		std::string digits = "1234567890";
+		std::string placeholders[]{ "msg", "lvl", "tr", "dbg", "inf", "wrn", "er", "crt" };
 #else
-		std::string_view digits = "1234567890";
+		std::string_view placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wrn", "er", "crt" };
 #endif
-		size_t placeHolderPosition;
-		std::string currentPadding;
-		size_t offset = 0u, noDigits;
-		int noSpaces;
+		std::string digits = "1234567890", floatDigits = "1234567890.", currentPadding;
+		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd;
+		float noSpacesLeft, noSpacesRight;
+		bool isNextCharacterSpace;
 
-		while ((placeHolderPosition = message.find_first_of(digits, offset)) != std::string::npos)
+		while ((placeholderPosition = message.find_first_of(digits, offset)) != std::string::npos)
 		{
-			if (message[placeHolderPosition - 1] != '%')
-				offset += placeHolderPosition + 1;
+			if (message[placeholderPosition - 1u] != '%' && (placeholderPosition > 1u && message[placeholderPosition - 2u] != '%' && message[placeholderPosition - 1u] != '.'))
+				offset += placeholderPosition + 1u;
 			else
 			{
-				currentPadding = message.substr(placeHolderPosition, message.find_first_not_of(digits, placeHolderPosition) - placeHolderPosition);
+				if(message[placeholderPosition - 1] != '%')
+					currentPadding = message.substr(placeholderPosition - 1u, message.find_first_not_of(floatDigits, placeholderPosition + 1u) - placeholderPosition + 1u);
+				else
+					currentPadding = message.substr(placeholderPosition, message.find_first_not_of(floatDigits, placeholderPosition) - placeholderPosition);
+				
 				noDigits = currentPadding.size();
-				noSpaces = std::stoi(currentPadding);
+				noDecimals = (noDecimals = currentPadding.find('.')) != std::string::npos ? (noDigits - noDecimals - 1u) : 0u;
+				noSpacesRight = std::modf(std::stof(currentPadding), &noSpacesLeft);
+				for (size_t i = 0u; i < noDecimals; ++i)
+					noSpacesRight *= 10;
 
-				message.replace(placeHolderPosition - 1u, noDigits + 1u, std::stoi(currentPadding), ' ');
+				if (noSpacesRight)
+				{
+					if ((currentSectionEnd = message.find_first_of(" ."), placeholderPosition + noDigits + 1u) != std::string::npos)
+					{
+						isNextCharacterSpace = message[currentSectionEnd + placeholderPosition + noDigits + 1u] == ' ';
+						message.replace(currentSectionEnd + placeholderPosition + noDigits + 1u, 1, (size_t)noSpacesRight + 1u, ' ');
+						if(!isNextCharacterSpace)
+							message[currentSectionEnd + placeholderPosition + noDigits + 1u + (size_t)noSpacesRight] = '.';
+					}
+				}
+
+				message.replace(placeholderPosition - 1u, noDigits + 1u, (size_t)noSpacesLeft, ' ');
 			}
 		}
 	}
@@ -514,13 +532,13 @@ namespace sblogger
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept
 	{
-		std::string pholder;
-		std::size_t pholderPosition;
-		for (size_t i = 0; i < items.size(); ++i)
+		std::string placeholder;
+		std::size_t placeholderPosition;
+		for (size_t i = 0u; i < items.size(); ++i)
 		{
-			pholder = "{" + std::to_string(i) + "}";
-			while ((pholderPosition = message.find(pholder)) != std::string::npos)
-				message.replace(pholderPosition, pholder.size(), items[i]);
+			placeholder = "{" + std::to_string(i) + "}";
+			while ((placeholderPosition = message.find(placeholder)) != std::string::npos)
+				message.replace(placeholderPosition, placeholder.size(), items[i]);
 		}
 		
 		if (m_Format.empty())
@@ -529,7 +547,7 @@ namespace sblogger
 			return message;
 		}
 		
-		message = (pholderPosition = m_Format.find("%msg")) != std::string::npos ? std::string(m_Format).replace(pholderPosition, 4, message) : (m_Format + ' ' + message);
+		message = (placeholderPosition = m_Format.find("%msg")) != std::string::npos ? std::string(m_Format).replace(placeholderPosition, 4u, message) : (m_Format + ' ' + message);
 		addIndent(message);
 		addPadding(message);
 		replaceCurrentLevel(message);
@@ -542,32 +560,32 @@ namespace sblogger
 	inline void Logger::replaceCurrentLevel(std::string& message) const noexcept
 	{
 		const std::size_t placeholderPosition = message.find("lvl");
-		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1] == '%' || message[placeholderPosition - 2] == '%'))
+		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			switch (s_CurrentLogLevel)
 			{
 			case LOG_LEVELS::TRACE:
-				message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "TRACE") : message.replace(placeholderPosition - 2, 4, "Trace");
+				message[placeholderPosition - 1u] == '^' ?
+					message.replace(placeholderPosition - 2u, 5u, "TRACE") : message.replace(placeholderPosition - 2u, 4u, "Trace");
 				break;
 			case LOG_LEVELS::DEBUG:
-				message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "DEBUG") : message.replace(placeholderPosition - 2, 4, "Debug");
+				message[placeholderPosition - 1u] == '^' ?
+					message.replace(placeholderPosition - 2u, 5u, "DEBUG") : message.replace(placeholderPosition - 2u, 4u, "Debug");
 				break;
 			case LOG_LEVELS::INFO:
-				message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "INFO") : message.replace(placeholderPosition - 2, 4, "Info");
+				message[placeholderPosition - 1u] == '^' ?
+					message.replace(placeholderPosition - 2u, 5u, "INFO") : message.replace(placeholderPosition - 2u, 4u, "Info");
 				break;
 			case LOG_LEVELS::WARN:
-				message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "WARN") : message.replace(placeholderPosition - 2, 4, "Warn");
+				message[placeholderPosition - 1u] == '^' ?
+					message.replace(placeholderPosition - 2u, 5u, "WARN") : message.replace(placeholderPosition - 2u, 4u, "Warn");
 				break;
 			case LOG_LEVELS::ERROR:
-				message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "ERROR") : message.replace(placeholderPosition - 2, 4, "Error");
+				message[placeholderPosition - 1u] == '^' ?
+					message.replace(placeholderPosition - 2u, 5u, "ERROR") : message.replace(placeholderPosition - 2u, 4u, "Error");
 				break;
 			case LOG_LEVELS::CRITICAL:
-				message[placeholderPosition - 1] == '^' ?
-					message.replace(placeholderPosition - 2, 5, "CRITICAL") : message.replace(placeholderPosition - 2, 4, "Critical");
+				message[placeholderPosition - 1u] == '^' ?
+					message.replace(placeholderPosition - 2u, 5u, "CRITICAL") : message.replace(placeholderPosition - 2u, 4u, "Critical");
 				break;
 			default:
 				message = "";
@@ -582,10 +600,10 @@ namespace sblogger
 #ifdef SBLOGGER_OLD_DATES
 		std::time_t t = std::time(nullptr);
 		std::size_t messageLength = message.size();
-		char* buffer = new char[messageLength + 100]{ 0 };
+		char* buffer = new char[messageLength + 100u]{ 0 };
 		std::string result;
 
-		if (std::strftime(buffer, sizeof(char) * (messageLength + 100), message.c_str(), std::localtime(&t)))
+		if (std::strftime(buffer, sizeof(char) * (messageLength + 100u), message.c_str(), std::localtime(&t)))
 			message = std::string(buffer);
 
 		delete[] buffer;

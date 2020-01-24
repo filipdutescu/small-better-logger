@@ -35,10 +35,11 @@ int main()
 	fileLogger.Write("Hello World!");
 	
 	// ======================================= TODELETE =======================================
-	sblogger::StreamLogger testingLogger("[%Y %T] %msg [%^lvl]");
+	sblogger::StreamLogger testingLogger("[%F %T] %msg [%^lvl]");
 
 	testingLogger.WriteLine("Test");
-	testingLogger.WriteLine("%5Test%10test");
+	testingLogger.WriteLine("%2.5Test.test");
+	testingLogger.WriteLine("%2^er");
 	// ===================================== END TODELETE =====================================
 
 	delete logLog;
