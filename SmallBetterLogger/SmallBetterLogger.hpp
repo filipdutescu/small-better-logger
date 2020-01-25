@@ -492,9 +492,9 @@ namespace sblogger
 		std::string_view placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wrn", "er", "crt" };
 #endif
 		std::string digits = "1234567890", floatDigits = "1234567890.", currentPadding;
-		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd;
+		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd, placeholderIndex, placeholderSize;
 		float noSpacesLeft, noSpacesRight;
-		bool isNextCharacterSpace;
+		char nextCharacter;
 
 		while ((placeholderPosition = message.find_first_of(digits, offset)) != std::string::npos)
 		{
@@ -502,7 +502,7 @@ namespace sblogger
 				offset += placeholderPosition + 1u;
 			else
 			{
-				if(message[placeholderPosition - 1] != '%')
+				if(message[placeholderPosition - 1u] != '%')
 					currentPadding = message.substr(placeholderPosition - 1u, message.find_first_not_of(floatDigits, placeholderPosition + 1u) - placeholderPosition + 1u);
 				else
 					currentPadding = message.substr(placeholderPosition, message.find_first_not_of(floatDigits, placeholderPosition) - placeholderPosition);
@@ -515,12 +515,12 @@ namespace sblogger
 
 				if (noSpacesRight)
 				{
-					if ((currentSectionEnd = message.find_first_of(" ."), placeholderPosition + noDigits + 1u) != std::string::npos)
+					if ((currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*"), placeholderPosition + noDigits + 1u) != std::string::npos)
 					{
-						isNextCharacterSpace = message[currentSectionEnd + placeholderPosition + noDigits + 1u] == ' ';
-						message.replace(currentSectionEnd + placeholderPosition + noDigits + 1u, 1, (size_t)noSpacesRight + 1u, ' ');
-						if(!isNextCharacterSpace)
-							message[currentSectionEnd + placeholderPosition + noDigits + 1u + (size_t)noSpacesRight] = '.';
+						nextCharacter = message[currentSectionEnd + placeholderPosition + noDigits + 1u];
+						message.replace(currentSectionEnd + placeholderPosition + noDigits + 1u, 1u, (size_t)noSpacesRight + 1u, ' ');
+						if(nextCharacter != ' ')
+							message[currentSectionEnd + placeholderPosition + noDigits + 1u + (size_t)noSpacesRight] = nextCharacter;
 					}
 				}
 
