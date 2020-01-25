@@ -515,12 +515,12 @@ namespace sblogger
 
 				if (noSpacesRight)
 				{
-					if ((currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*"), placeholderPosition + noDigits + 1u) != std::string::npos)
+					if ((currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*", placeholderPosition + noDigits + 1u)) != std::string::npos)
 					{
-						nextCharacter = message[currentSectionEnd + placeholderPosition + noDigits + 1u];
-						message.replace(currentSectionEnd + placeholderPosition + noDigits + 1u, 1u, (size_t)noSpacesRight + 1u, ' ');
+						nextCharacter = message[currentSectionEnd];
+						message.replace(currentSectionEnd, 1u, (size_t)noSpacesRight + 1u, ' ');
 						if(nextCharacter != ' ')
-							message[currentSectionEnd + placeholderPosition + noDigits + 1u + (size_t)noSpacesRight] = nextCharacter;
+							message[currentSectionEnd + (size_t)noSpacesRight] = nextCharacter;
 					}
 				}
 
