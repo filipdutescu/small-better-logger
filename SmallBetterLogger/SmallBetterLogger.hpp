@@ -524,15 +524,12 @@ namespace sblogger
 						placeholderSize = placeholders[i].size();
 					}
 
-				if (noSpacesRight)
+				if (noSpacesRight && (placeholderIndex || placeholderSize || (currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*", placeholderPosition + noDigits + 1u)) != std::string::npos))
 				{
-					if (placeholderIndex || placeholderSize || (currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*", placeholderPosition + noDigits + 1u)) != std::string::npos)
-					{
-						nextCharacter = message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd];
-						message.replace(placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd, 1u, (size_t)noSpacesRight + 1u, ' ');
-						if(nextCharacter != ' ')
-							message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : (currentSectionEnd + (size_t)noSpacesRight)] = nextCharacter;
-					}
+					nextCharacter = message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd];
+					message.replace(placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd, 1u, (size_t)noSpacesRight + 1u, ' ');
+					if(nextCharacter != ' ')
+						message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : (currentSectionEnd + (size_t)noSpacesRight)] = nextCharacter;
 				}
 
 				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderIndex && !placeholderSize ? (size_t)noSpacesLeft :((size_t)noSpacesLeft + 1u) , ' ');
