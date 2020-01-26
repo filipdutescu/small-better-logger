@@ -38,8 +38,8 @@ int main()
 	sblogger::StreamLogger testingLogger("[%F %T] %msg [%^lvl]");
 
 	testingLogger.WriteLine("Test");
-	testingLogger.WriteLine("%2.5Test, test");
-	testingLogger.WriteLine("%2^er");
+	testingLogger.WriteLine("%2.3Test, test");
+	testingLogger.WriteLine("%2.5^er");
 	// ===================================== END TODELETE =====================================
 
 	delete logLog;
