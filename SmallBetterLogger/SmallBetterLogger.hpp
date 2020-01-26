@@ -533,9 +533,6 @@ namespace sblogger
 						if(nextCharacter != ' ')
 							message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : (currentSectionEnd + (size_t)noSpacesRight)] = nextCharacter;
 					}
-					else
-					{
-					}
 				}
 
 				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderIndex && !placeholderSize ? (size_t)noSpacesLeft :((size_t)noSpacesLeft + 1u) , ' ');
