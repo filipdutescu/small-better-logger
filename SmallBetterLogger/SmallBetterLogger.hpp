@@ -36,7 +36,7 @@ SOFTWARE.
 	#endif
 #endif
 
-// Cross-platform macros
+// Cross-platform newline macros
 #ifdef SBLOGGER_NIX
 	#define SBLOGGER_NEWLINE '\n'
 #elif SBLOGGER_OS9
@@ -93,7 +93,9 @@ SOFTWARE.
 
 namespace sblogger
 {
+	//
 	// Loggers' declaration
+	//
 
 	// Basic Logger
 	// Abstract class which implements basic logger methods and members (ex.: auto flush, format, replace formatters etc)
@@ -112,7 +114,9 @@ namespace sblogger
 	// Used to log messages to a file stream
 	using file_logger = FileLogger;
 
+	//
 	// Enum Definitions
+	//
 
 	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
 	enum LOG_LEVELS
@@ -128,14 +132,23 @@ namespace sblogger
 	};
 	using stream_type = STREAM_TYPE;
 
+	//
 	// Custom Exceptions
+	//
 
-	// Base Exception
+	// Base exception
 	class SBLoggerException : public std::exception
 	{
 	protected:
-		// Protected Members
+		//
+		// Protected members
+		//
+
 		std::string m_Exception;
+
+		//
+		// Protected methods
+		//
 
 		// Creates an exception with a given message
 		SBLoggerException(std::string& exception);
@@ -154,6 +167,10 @@ namespace sblogger
 		inline const char* What() const throw();
 	};
 
+	//
+	// Constructors and destructors
+	//
+
 	// Creates an exception with a given message
 	SBLoggerException::SBLoggerException(std::string& exception)
 		: std::exception(exception.c_str()), m_Exception(exception)
@@ -169,71 +186,108 @@ namespace sblogger
 		: std::exception(exception), m_Exception(exception)
 	{ }
 
+	//
+	// Public methods
+	//
+
 	// Get error message
 	inline const char* SBLoggerException::What() const throw() { return m_Exception.c_str(); }
 
+	//
 	// NullOrEmptyPathException
+	//
 
 	// Thrown when the given file path is null or empty
 	class NullOrEmptyPathException : public SBLoggerException
 	{
 	public:
+		// Default constructor
 		NullOrEmptyPathException();
 	};
 
+	// Default constructor
 	NullOrEmptyPathException::NullOrEmptyPathException() 
 		: SBLoggerException("File path cannot be null or empty.")
 	{ }
 
+	//
 	// NullOrWhitespaceNameException
+	//
 
 	// Thrown when the given file name is null or whitespace
 	class NullOrWhitespaceNameException : public SBLoggerException
 	{
 	public:
+		// Default constructor
 		NullOrWhitespaceNameException();
 	};
 
+	// Default constructor
 	NullOrWhitespaceNameException::NullOrWhitespaceNameException() 
 		: SBLoggerException("File name cannot be null or whitespace.")
 	{ }
 
+	//
 	// InvalidFilePathException
+	//
 
 	// Thrown when the specified file could not be openned
 	class InvalidFilePathException : public SBLoggerException
 	{
 	public:
+		//
+		// Constructors and destructors
+		//
+
+		// Default constructor
 		InvalidFilePathException();
+
+		// Creates an invalid file path exception with a given message
 		InvalidFilePathException(const std::string& filePath);
+
+		// Creates an invalid file path exception with a given message
 		InvalidFilePathException(const std::string&& filePath);
 	};
 
+	//
+	// Constructors and destructors
+	//
+
+	// Default constructor
 	InvalidFilePathException::InvalidFilePathException() 
 		: SBLoggerException("Cannot open log file to write to.")
 	{ }
 
+	// Creates an invalid file path exception with a given message
 	InvalidFilePathException::InvalidFilePathException(const std::string& filePath)
 		: SBLoggerException("Cannot open log file " + filePath + '.')
 	{ }
 
+	// Creates an invalid file path exception with a given message
 	InvalidFilePathException::InvalidFilePathException(const std::string&& filePath)
 		: SBLoggerException("Cannot open log file " + filePath + '.')
 	{ }
 
-	// Classes' Definitions
+	//
+	// Classes' definitions
+	//
 
 	// Abstract class which implements basic logger methods and members (ex.: auto flush, format, replace formatters etc)
 	class Logger
 	{
 	protected:
+		//
 		// Protected Members
+		//
+
 		std::string m_Format;
 		bool m_AutoFlush;
-		int m_IndentCount;
+		size_t m_IndentCount;
 		static LOG_LEVELS s_CurrentLogLevel;
 
+		//
 		// Protected constructors
+		//
 
 		// Initialize a logger, with a format, auto flush (by default)
 		inline Logger(const std::string& format, bool autoFlush);
@@ -247,7 +301,9 @@ namespace sblogger
 		// Move constructor
 		inline Logger(Logger&& other) noexcept;
 
+		//
 		// Protected methods
+		//
 
 		// Writes string to appropriate stream
 		inline virtual void writeToStream(const std::string&& message) = 0;
@@ -279,7 +335,9 @@ namespace sblogger
 		// Default destructor
 		virtual ~Logger() = default;
 
+		//
 		// Public Methods
+		//
 
 		// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc). 
 		static inline void SetLoggingLevel(const LOG_LEVELS& level) noexcept;
@@ -297,12 +355,14 @@ namespace sblogger
 		virtual inline void Flush() = 0;
 
 		// Indent (prepend '\t') log, returns the number of indents the final message will contain
-		inline const int Indent() noexcept;
+		inline const size_t Indent() noexcept;
 
 		// Dedent (remove '\t') log, returns the number of indents the final message will contain
-		inline const int Dedent() noexcept;
+		inline const size_t Dedent() noexcept;
 
+		//
 		// Generic Methods: Write a TRACE level message (depending on the specified "LOG_LEVEL") to a stream
+		//
 
 		// Writes to the stream the newline character, assuming a default log level of TRACE
 		inline void WriteLine(LOG_LEVELS logLevel = LOG_LEVELS::TRACE);
@@ -323,7 +383,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void WriteLine(const std::string&& message, const T&& ...t);
 
+		//
 		// Generic Methods: Write a level message (depending on the specified "LOG_LEVEL") to a stream 
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of "logLevel" importance
 		template<typename ...T>
@@ -341,7 +403,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void WriteLine(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t);
 
-		// Generic Methods: Write a TRACE level message to a stream 
+		//
+		// Generic Methods: Write a TRACE level message to a stream
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of TRACE importance
 		template<typename ...T>
@@ -361,7 +425,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void Debug(const std::string&& message, const T&& ...t);
 
+		//
 		// Generic Methods: Write a INFO level message to a stream 
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of INFO importance
 		template<typename ...T>
@@ -371,7 +437,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void Info(const std::string&& message, const T&& ...t);
 
+		//
 		// Generic Methods: Write a WARN level message to a stream 
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of WARN importance
 		template<typename ...T>
@@ -381,7 +449,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void Warn(const std::string&& message, const T&& ...t);
 
+		//
 		// Generic Methods: Write a ERROR level message to a stream 
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of ERROR importance
 		template<typename ...T>
@@ -391,7 +461,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void Error(const std::string&& message, const T&& ...t);
 
+		//
 		// Generic Methods: Write a CRITICAL level message to a stream 
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of CRITICAL importance
 		template<typename ...T>
@@ -401,6 +473,7 @@ namespace sblogger
 		template<typename ...T>
 		inline void Critical(const std::string&& message, const T&& ...t);
 	};
+	// Static member initialization
 	// Check to see what is the current active log level, by default use TRACE
 #if SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_DEBUG
 	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::DEBUG;
@@ -418,44 +491,51 @@ namespace sblogger
 	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::TRACE;
 #endif
 
+	//
+	// Protected constructors
+	//
+
 	// Initialize a logger, with a format, auto flush (by default)
 	inline Logger::Logger(const std::string& format, bool autoFlush)
-		: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
+		: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0u)
 	{
-		addPadding(m_Format);
+		if (!m_Format.empty())
+		{
+			addPadding(m_Format);
 #ifdef SBLOGGER_LEGACY
-		std::string placeholder = "tr";
+			std::string placeholder = "tr";
 #else
-		std::string_view placeholder = "tr";
+			std::string_view placeholder = "tr";
 #endif
-		std::size_t placeholderPosition = m_Format.find(placeholder);
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
-			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
-		
-		placeholderPosition = m_Format.find(placeholder = "dbg");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
-			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "DEBUG") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Debug");
+			std::size_t placeholderPosition = m_Format.find(placeholder);
+			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
 
-		placeholderPosition = m_Format.find(placeholder = "inf");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
-			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "INFO") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Info");
+			placeholderPosition = m_Format.find(placeholder = "dbg");
+			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "DEBUG") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Debug");
 
-		placeholderPosition = m_Format.find(placeholder = "wn");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
-			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "WARN") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Warn");
+			placeholderPosition = m_Format.find(placeholder = "inf");
+			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "INFO") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Info");
 
-		placeholderPosition = m_Format.find(placeholder = "er");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
-			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "ERROR") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Error");
+			placeholderPosition = m_Format.find(placeholder = "wn");
+			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "WARN") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Warn");
 
-		placeholderPosition = m_Format.find(placeholder = "crt");
-		if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
-			m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "CRITICAL") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Critical");
+			placeholderPosition = m_Format.find(placeholder = "er");
+			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "ERROR") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Error");
+
+			placeholderPosition = m_Format.find(placeholder = "crt");
+			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "CRITICAL") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Critical");
+		}
 	}
 
 	// Initialize a logger, with no format, auto flush (by default)
 	inline Logger::Logger(bool autoFlush) noexcept
-		: m_Format(), m_AutoFlush(autoFlush), m_IndentCount(0)
+		: m_Format(), m_AutoFlush(autoFlush), m_IndentCount(0u)
 	{ }
 
 	// Copy constructor
@@ -470,6 +550,10 @@ namespace sblogger
 		m_AutoFlush = other.m_AutoFlush;
 		m_IndentCount = other.m_IndentCount;
 	}
+
+	//
+	// Protected methods
+	//
 
 	// Converts a T value to a string to be used in writing a log
 	template<typename T>
@@ -491,12 +575,12 @@ namespace sblogger
 	inline void Logger::addPadding(std::string& message) const noexcept
 	{
 #ifdef SBLOGGER_LEGACY
-		std::string placeholders[]{ "msg", "lvl", "tr", "dbg", "inf", "wrn", "er", "crt" };
+		std::string placeholders[]{ "msg", "lvl", "tr", "dbg", "inf", "wn", "er", "crt" };
 #else
-		std::string_view placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wrn", "er", "crt" };
+		std::string_view placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wn", "er", "crt" };
 #endif
 		std::string digits = "1234567890", floatDigits = "1234567890.", currentPadding;
-		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd, placeholderSize, noPlacehodlers = 8u;
+		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd, placeholderSize, noPlaceholders = 8u;
 		float noSpacesLeft, noSpacesRight;
 		char nextCharacter;
 
@@ -518,9 +602,9 @@ namespace sblogger
 					noSpacesRight *= 10;
 
 				placeholderSize = 0u;
-				for (size_t i = 0u; i < noPlacehodlers && !placeholderSize; ++i)
+				for (size_t i = 0u; i < noPlaceholders && !placeholderSize; ++i)
 					if ((currentSectionEnd = message.find(placeholders[i], placeholderPosition + noDigits)) != std::string::npos && placeholderPosition + noDigits == currentSectionEnd - 1u)
-					placeholderSize = placeholders[i].size();
+						placeholderSize = placeholders[i].size();
 
 				if (noSpacesRight && (placeholderSize || (currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*", placeholderPosition + noDigits + 1u)) != std::string::npos))
 				{
@@ -532,7 +616,7 @@ namespace sblogger
 
 				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderSize ? (size_t)noSpacesLeft :((size_t)noSpacesLeft + 1u) , ' ');
 				if (placeholderSize)
-					message[placeholderPosition + noSpacesLeft] = '%';
+					message[placeholderPosition + (size_t)noSpacesLeft] = '%';
 			}
 		}
 	}
@@ -541,21 +625,17 @@ namespace sblogger
 	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept
 	{
 		std::string placeholder;
-		std::size_t placeholderPosition;
+		std::size_t placeholderPosition, placeholderSize;
 		for (size_t i = 0u; i < items.size(); ++i)
 		{
-			placeholder = "{" + std::to_string(i) + "}";
+			placeholderSize = (placeholder = "{" + std::to_string(i) + "}").size();
 			while ((placeholderPosition = message.find(placeholder)) != std::string::npos)
-				message.replace(placeholderPosition, placeholder.size(), items[i]);
+				message.replace(placeholderPosition, placeholderSize, items[i]);
 		}
 		
-		if (m_Format.empty())
-		{
-			addIndent(message);
-			return message;
-		}
+		if(!m_Format.empty())
+			message = (placeholderPosition = m_Format.find("%msg")) != std::string::npos ? std::string(m_Format).replace(placeholderPosition, 4u, message) : (m_Format + ' ' + message);
 		
-		message = (placeholderPosition = m_Format.find("%msg")) != std::string::npos ? std::string(m_Format).replace(placeholderPosition, 4u, message) : (m_Format + ' ' + message);
 		addIndent(message);
 		addPadding(message);
 		replacePredefinedPlaceholders(message);
@@ -635,12 +715,11 @@ namespace sblogger
 	{
 		// Replace date format using std::strftime (pre C++20)
 #ifdef SBLOGGER_OLD_DATES
-		std::time_t t = std::time(nullptr);
+		std::time_t currentTime = std::time(nullptr);
 		std::size_t messageLength = message.size();
 		char* buffer = new char[messageLength + 100u]{ 0 };
-		std::string result;
 
-		if (std::strftime(buffer, sizeof(char) * (messageLength + 100u), message.c_str(), std::localtime(&t)))
+		if (std::strftime(buffer, sizeof(char) * (messageLength + 100u), message.c_str(), std::localtime(&currentTime)))
 			message = std::string(buffer);
 
 		delete[] buffer;
@@ -650,16 +729,20 @@ namespace sblogger
 #endif
 	}
 
+	//
+	// Public methods
+	//
+
 	// Indent (prepend '\t') log, returns the number of indents the final message will contain
-	inline const int Logger::Indent() noexcept
+	inline const size_t Logger::Indent() noexcept
 	{
 		return ++m_IndentCount;
 	}
 
 	// Dedent (prepend '\t') log, returns the number of indents the final message will contain
-	inline const int Logger::Dedent() noexcept
+	inline const size_t Logger::Dedent() noexcept
 	{
-		return --m_IndentCount;
+		return m_IndentCount > 0 ? --m_IndentCount : m_IndentCount;
 	}
 
 	// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc).
@@ -693,7 +776,9 @@ namespace sblogger
 			writeToStream(SBLOGGER_NEWLINE);
 	}
 
+	//
 	// Generic write methods to write a TRACE level message to the stream
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist) with a default level of TRACE
 	template<typename ...T>
@@ -727,7 +812,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
 	}
 
+	//
 	// Generic Methods: Write a level message (depending on the specified "LOG_LEVEL") to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), with "logLevel" importance
 	template<typename ...T>
@@ -761,7 +848,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
 	}
 
+	//
 	// Generic Methods: Write a TRACE level message to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), of TRACE importance
 	template<typename ...T>
@@ -779,7 +868,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	//
 	// Generic Methods: Write a DEBUG level message to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), of DEBUG importance
 	template<typename ...T>
@@ -797,7 +888,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	//
 	// Generic Methods: Write a INFO level message to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), of INFO importance
 	template<typename ...T>
@@ -815,7 +908,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	//
 	// Generic Methods: Write a WARN level message to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), of WARN importance
 	template<typename ...T>
@@ -833,7 +928,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	//
 	// Generic Methods: Write a ERROR level message to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), of ERROR importance
 	template<typename ...T>
@@ -851,7 +948,9 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	//
 	// Generic Methods: Write a CRITICAL level message to a stream 
+	//
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), of CRITICAL importance
 	template<typename ...T>
@@ -869,22 +968,31 @@ namespace sblogger
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
+	//
 	// StreamLogger class
+	//
 
 	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	class StreamLogger : public Logger
 	{
 	protected:
+		//
 		// Protected members
+		//
+
 		STREAM_TYPE m_StreamType;
 
+		//
 		// Protected methods
+		//
 
 		// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
 		inline void writeToStream(const std::string&& str) override;
 
 	public:
+		//
 		// Constructors and destructors
+		//
 
 		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
 		// By default uses STREAM_TYPE::STDOUT and no format or auto flush
@@ -914,12 +1022,16 @@ namespace sblogger
 		// Flush stream before deletion
 		inline ~StreamLogger() override;
 
+		//
 		// Overloaded Operators
+		//
 
 		// Assignment Operator
 		inline StreamLogger& operator=(const StreamLogger& other) noexcept;
 
+		//
 		// Public Methods
+		//
 
 		// Flush appropriate stream
 		virtual inline void Flush() override;
@@ -928,7 +1040,9 @@ namespace sblogger
 		inline void SetStreamType(STREAM_TYPE streamType);
 	};
 
+	//
 	// Constructors and destructors
+	//
 
 	// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
 	// By default uses STREAM_TYPE::STDOUT and no format or auto flush
@@ -981,7 +1095,9 @@ namespace sblogger
 		}
 	}
 
+	//
 	// Overloaded Operators
+	//
 
 	// Assignment Operator
 	inline StreamLogger& StreamLogger::operator=(const StreamLogger& other) noexcept
@@ -1025,10 +1141,17 @@ namespace sblogger
 		m_StreamType = streamType;
 	}
 
+	//
+	// FileLogger class
+	//
+
 	// Used to log messages to a file stream
 	class FileLogger : public Logger
 	{
+		//
 		// Private members
+		//
+
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 		std::string m_FilePath;
 #else
@@ -1036,11 +1159,17 @@ namespace sblogger
 #endif
 		std::fstream m_FileStream;
 
+		//
+		// Protected methods
+		//
+
 		// Writes string to file stream and flush if auto flush is set
 		inline void writeToStream(const std::string&& str) override;
 
 	public:
-		// Constructors
+		//
+		// Constructors and destructors
+		//
 
 		// Deleted to prevent usage without providing a file path
 		FileLogger() = delete;
@@ -1076,12 +1205,16 @@ namespace sblogger
 		// Flush and close stream if open
 		inline ~FileLogger() override;
 
+		//
 		// Overloaded Operators
+		//
 
 		// Assignment Operator (deleted since having two streams for the same file causes certain output not to be writen).
 		inline FileLogger& operator=(const FileLogger& other) = delete;
 
+		//
 		// Public Methods
+		//
 
 		// Flush file stream
 		inline void Flush() override;
@@ -1090,7 +1223,9 @@ namespace sblogger
 		inline void ClearLogs();
 	};
 
-	// Constructors
+	//
+	// Constructors and destructors
+	//
 
 	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 	// By default there is no formatting and auto flush is set to true
@@ -1239,6 +1374,10 @@ namespace sblogger
 		}
 	}
 
+	//
+	// Private methods
+	//
+
 	// Writes string to file stream and flush if auto flush is set
 	inline void FileLogger::writeToStream(const std::string&& str)
 	{
@@ -1255,6 +1394,10 @@ namespace sblogger
 				m_FileStream.flush();
 		}
 	}
+
+	//
+	// Public methods
+	//
 
 	// Flush file stream
 	inline void FileLogger::Flush()

@@ -39,7 +39,7 @@ int main()
 
 	testingLogger.WriteLine("Test");
 	testingLogger.WriteLine("%2.3Test, test");
-	testingLogger.WriteLine("%2.5^er");
+	testingLogger.WriteLine("%.5^er");
 	// ===================================== END TODELETE =====================================
 
 	delete logLog;
