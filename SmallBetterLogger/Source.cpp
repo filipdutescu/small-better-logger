@@ -33,15 +33,6 @@ int main()
 	fileLogger.WriteLine("This is a test.");	// All methods previously shown can also be used with files
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
-	
-	// ======================================= TODELETE =======================================
-	sblogger::StreamLogger testingLogger("[%F %T] %msg [%^lvl]");
-
-	testingLogger.WriteLine("Test");
-	testingLogger.WriteLine("%2.3Test, test");
-	testingLogger.WriteLine("%.5^er");
-	testingLogger.WriteLine("\033[31m testing colors\033[m");
-	// ===================================== END TODELETE =====================================
 
 	delete logLog;
 	std::cin.get();
