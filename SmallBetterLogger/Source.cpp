@@ -40,6 +40,7 @@ int main()
 	testingLogger.WriteLine("Test");
 	testingLogger.WriteLine("%2.3Test, test");
 	testingLogger.WriteLine("%.5^er");
+	testingLogger.WriteLine("\033[31m testing colors\033[m");
 	// ===================================== END TODELETE =====================================
 
 	delete logLog;
