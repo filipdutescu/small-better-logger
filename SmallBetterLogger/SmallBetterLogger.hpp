@@ -422,6 +422,7 @@ namespace sblogger
 	inline Logger::Logger(const std::string& format, bool autoFlush)
 		: m_Format(format), m_AutoFlush(autoFlush), m_IndentCount(0)
 	{
+		addPadding(m_Format);
 #ifdef SBLOGGER_LEGACY
 		std::string placeholder = "tr";
 #else
@@ -495,7 +496,7 @@ namespace sblogger
 		std::string_view placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wrn", "er", "crt" };
 #endif
 		std::string digits = "1234567890", floatDigits = "1234567890.", currentPadding;
-		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd, placeholderIndex, placeholderSize, noPlacehodlers = 8u;
+		size_t placeholderPosition, offset = 0u, noDigits, noDecimals, currentSectionEnd, placeholderSize, noPlacehodlers = 8u;
 		float noSpacesLeft, noSpacesRight;
 		char nextCharacter;
 
@@ -516,24 +517,21 @@ namespace sblogger
 				for (size_t i = 0u; i < noDecimals; ++i)
 					noSpacesRight *= 10;
 
-				placeholderIndex = placeholderSize = 0u;
+				placeholderSize = 0u;
 				for (size_t i = 0u; i < noPlacehodlers && !placeholderSize; ++i)
 					if ((currentSectionEnd = message.find(placeholders[i], placeholderPosition + noDigits)) != std::string::npos && placeholderPosition + noDigits == currentSectionEnd - 1u)
-					{
-						placeholderIndex = i;
-						placeholderSize = placeholders[i].size();
-					}
+					placeholderSize = placeholders[i].size();
 
-				if (noSpacesRight && (placeholderIndex || placeholderSize || (currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*", placeholderPosition + noDigits + 1u)) != std::string::npos))
+				if (noSpacesRight && (placeholderSize || (currentSectionEnd = message.find_first_of(" .-,@#(){}[]'\"\\/!`~|;:?><=+-_%&*", placeholderPosition + noDigits + 1u)) != std::string::npos))
 				{
-					nextCharacter = message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd];
-					message.replace(placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd, 1u, (size_t)noSpacesRight + 1u, ' ');
+					nextCharacter = message[placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd];
+					message.replace(placeholderSize ? (currentSectionEnd + placeholderSize) : currentSectionEnd, 1u, (size_t)noSpacesRight + 1u, ' ');
 					if(nextCharacter != ' ')
-						message[placeholderIndex || placeholderSize ? (currentSectionEnd + placeholderSize) : (currentSectionEnd + (size_t)noSpacesRight)] = nextCharacter;
+						message[placeholderSize ? (currentSectionEnd + placeholderSize) : (currentSectionEnd + (size_t)noSpacesRight)] = nextCharacter;
 				}
 
-				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderIndex && !placeholderSize ? (size_t)noSpacesLeft :((size_t)noSpacesLeft + 1u) , ' ');
-				if (placeholderIndex || placeholderSize)
+				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderSize ? (size_t)noSpacesLeft :((size_t)noSpacesLeft + 1u) , ' ');
+				if (placeholderSize)
 					message[placeholderPosition + noSpacesLeft] = '%';
 			}
 		}

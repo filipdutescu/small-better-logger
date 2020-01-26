@@ -131,7 +131,7 @@ int main()
   logger.Write("This is my logger!");
   logger.WriteLine();
   ...
-  logger.SetFormat("[%Y-%m-%d %H-%M-%S][%^err]");
+  logger.SetFormat("[%Y-%m-%d %H-%M-%S][%^er]");
   logger.Error("This is an error with a custom format.\n");
   ...
 }
@@ -150,4 +150,4 @@ Output:
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
 
 ## Acknowledgments
-  * [@eugencutic](http://github.com/eugencutic) - Special thanks for code reviews and advice
+  * [@eugencutic](http://github.com/eugencutic) - Special thanks for code reviews and suggestions
