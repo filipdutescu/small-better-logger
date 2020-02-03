@@ -61,6 +61,9 @@ SOFTWARE.
 // Define your prefered active level using the macro bellow, or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
 //#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
 
+// Either uncomment or define this macro, should your environment support colours and you wish to use them
+#define SBLOGGER_COLORS
+
 // Used for writing to output stream
 #include <iostream>
 #include <fstream>
@@ -318,6 +321,11 @@ namespace sblogger
 		// Add padding to string (if padding format exists)
 		inline void addPadding(std::string& message) const noexcept;
 
+#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
+		// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+		inline void addColours(std::string& message) const noexcept;
+#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+
 		// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept;
 
@@ -507,7 +515,7 @@ namespace sblogger
 #else
 			std::string_view placeholder = "tr";
 #endif
-			std::size_t placeholderPosition = m_Format.find(placeholder);
+			size_t placeholderPosition = m_Format.find(placeholder);
 			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
 
@@ -614,21 +622,43 @@ namespace sblogger
 						message[placeholderSize ? (currentSectionEnd + placeholderSize) : (currentSectionEnd + (size_t)noSpacesRight)] = nextCharacter;
 				}
 
-				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderSize ? (size_t)noSpacesLeft :((size_t)noSpacesLeft + 1u) , ' ');
+				message.replace(placeholderPosition - 1u, noDigits + 1u, !placeholderSize ? (size_t)noSpacesLeft : ((size_t)noSpacesLeft + 1u) , ' ');
 				if (placeholderSize)
 					message[placeholderPosition + (size_t)noSpacesLeft] = '%';
 			}
 		}
 	}
 
+#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
+	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+	inline void Logger::addColours(std::string& message) const noexcept
+	{
+		std::string colours[]{ "black", "red",	"green", "yellow", "blue", "magenta", "cyan", "white", "^black", "^red", "^green", "^yellow", "^blue", "^magenta", "^cyan", "^white" };
+		size_t placeholderPosition, placeholderSize, codes[]{ 30, 31, 32, 33, 34, 35, 36, 37 };
+
+		for (size_t i = 0u; i < 8u; ++i)
+		{
+			while ((placeholderPosition = message.find(colours[i] + '{')) != std::string::npos)
+			{
+				placeholderSize = colours[i].size();
+				message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholderSize + 3u, "\033[" + std::to_string(codes[i] + 60u) + 'm') : message.replace(placeholderPosition - 1u, placeholderSize + 2u, "\033[" + std::to_string(codes[i]) + 'm');
+				if ((placeholderPosition = message.find('}' + colours[i] + '%')) != std::string::npos)
+					message.replace(placeholderPosition, placeholderSize + 2u, "\033[m");
+			}
+		}
+
+		message += "\033[m";
+	}
+#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept
 	{
 		std::string placeholder;
-		std::size_t placeholderPosition, placeholderSize;
+		size_t placeholderPosition, placeholderSize;
 		for (size_t i = 0u; i < items.size(); ++i)
 		{
-			placeholderSize = (placeholder = "{" + std::to_string(i) + "}").size();
+			placeholderSize = (placeholder = '{' + std::to_string(i) + '}').size();
 			while ((placeholderPosition = message.find(placeholder)) != std::string::npos)
 				message.replace(placeholderPosition, placeholderSize, items[i]);
 		}
@@ -638,6 +668,9 @@ namespace sblogger
 		
 		addIndent(message);
 		addPadding(message);
+#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
+		addColours(message);
+#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
 		replacePredefinedPlaceholders(message);
 		replaceCurrentLevel(message);
 		replaceDateFormats(message);
@@ -653,7 +686,7 @@ namespace sblogger
 #else
 		std::string_view placeholder = "tr";
 #endif
-		std::size_t placeholderPosition = message.find(placeholder);
+		size_t placeholderPosition = message.find(placeholder);
 		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
 
@@ -676,7 +709,7 @@ namespace sblogger
 	// Replace current logging level in format
 	inline void Logger::replaceCurrentLevel(std::string& message) const noexcept
 	{
-		const std::size_t placeholderPosition = message.find("lvl");
+		const size_t placeholderPosition = message.find("lvl");
 		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			switch (s_CurrentLogLevel)
 			{
@@ -713,16 +746,17 @@ namespace sblogger
 	// Replace date format using std::strftime (pre C++20) or std::chrono::format
 	inline void Logger::replaceDateFormats(std::string& message) const noexcept
 	{
-		// Replace date format using std::strftime (pre C++20)
+// Replace date format using std::strftime (pre C++20)
 #ifdef SBLOGGER_OLD_DATES
 		std::time_t currentTime = std::time(nullptr);
-		std::size_t messageLength = message.size();
+		size_t messageLength = message.size();
 		char* buffer = new char[messageLength + 100u]{ 0 };
 
 		if (std::strftime(buffer, sizeof(char) * (messageLength + 100u), message.c_str(), std::localtime(&currentTime)))
 			message = std::string(buffer);
 
 		delete[] buffer;
+// Replace date format using std::chrono::format
 #else
 		// Replace date format using std::chrono::format
 		// Wait for MSVC to catch up
