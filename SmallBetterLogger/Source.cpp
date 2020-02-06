@@ -35,14 +35,12 @@ int main()
 	fileLogger.Write("Hello World!");
 	
 	// ======================================= TODELETE =======================================
-	sblogger::StreamLogger testingLogger("[%F %T] %msg [%^lvl]");
+	sblogger::StreamLogger testingLogger("${yellow}[%F %T] $^{yellow}%msg%{yellow} [%^lvl]${reset}");
 
 	testingLogger.WriteLine("Test");
 	testingLogger.WriteLine("%2.3Test, test");
 	testingLogger.WriteLine("%.5^er");
-	testingLogger.WriteLine("\033[31mtesting colors\033[m");
-	testingLogger.WriteLine("%red{testing colors}red%");
-	testingLogger.WriteLine("%^red{testing colors}red%");
+	testingLogger.WriteLine("t%{reset}%{red}e%{green}s%{blue}t%{magenta}i%{yellow}n%{cyan}g colors%{reset}");
 	// ===================================== END TODELETE =====================================
 
 	delete logLog;

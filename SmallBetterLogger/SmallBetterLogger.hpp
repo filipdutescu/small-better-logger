@@ -25,6 +25,20 @@ SOFTWARE.
 #ifndef SMALL_BETTER_LOGGER_H
 #define SMALL_BETTER_LOGGER_H
 
+// Log Levels macros to be used with "SBLOGGER_LOG_LEVEL" macro for defining a default level
+#define SBLOGGER_LEVEL_TRACE     0
+#define SBLOGGER_LEVEL_DEBUG     1
+#define SBLOGGER_LEVEL_INFO      2
+#define SBLOGGER_LEVEL_WARN      3
+#define SBLOGGER_LEVEL_ERROR     4
+#define SBLOGGER_LEVEL_CRITICAL  5
+#define SBLOGGER_LEVEL_OFF       6
+// Define your prefered active level using the macro bellow, or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
+//#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
+
+// Either uncomment or define this macro, should your environment support colours and you wish to use them
+#define SBLOGGER_COLORS
+
 #if __cplusplus != 199711L
 	#if __cplusplus < 201703L
 		// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
@@ -49,20 +63,6 @@ SOFTWARE.
 	// Raw file path regex as string literal
 	#define SBLOGGER_RAW_FILE_PATH_REGEX R"regex(^(((([a-zA-Z]\:|\\)+\\[^\/\\:"'*?<>|\0]+)+|([^\/\\:"'*?<>|\0]+)+)|(((\.\/|\~\/|\/[^\/\\:"'*?~<>|\0]+\/)?[^\/\\:"'*?~<>|\0]+)+))$)regex"
 #endif
-
-// Log Levels macros to be used with "SBLOGGER_LOG_LEVEL" macro for defining a default level
-#define SBLOGGER_LEVEL_TRACE     0
-#define SBLOGGER_LEVEL_DEBUG     1
-#define SBLOGGER_LEVEL_INFO      2
-#define SBLOGGER_LEVEL_WARN      3
-#define SBLOGGER_LEVEL_ERROR     4
-#define SBLOGGER_LEVEL_CRITICAL  5
-#define SBLOGGER_LEVEL_OFF       6
-// Define your prefered active level using the macro bellow, or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
-//#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
-
-// Either uncomment or define this macro, should your environment support colours and you wish to use them
-#define SBLOGGER_COLORS
 
 // Used for writing to output stream
 #include <iostream>
@@ -118,7 +118,7 @@ namespace sblogger
 	using file_logger = FileLogger;
 
 	//
-	// Enum Definitions
+	// Enum definitions
 	//
 
 	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
@@ -136,7 +136,7 @@ namespace sblogger
 	using stream_type = STREAM_TYPE;
 
 	//
-	// Custom Exceptions
+	// Custom exceptions
 	//
 
 	// Base exception
@@ -280,7 +280,7 @@ namespace sblogger
 	{
 	protected:
 		//
-		// Protected Members
+		// Protected members
 		//
 
 		std::string m_Format;
@@ -315,16 +315,15 @@ namespace sblogger
 		template<typename T>
 		inline std::string stringConvert(const T& t) const noexcept;
 
+		// Adds ANSII colour codes if current stream supports them
+		// (The Logger base class does not do anything with the message, the method needing implementation from derived classes)
+		inline virtual void addColours(std::string& message) const noexcept;
+
 		// Add indent to string (if it is set)
 		inline void addIndent(std::string& message) const noexcept;
 
 		// Add padding to string (if padding format exists)
 		inline void addPadding(std::string& message) const noexcept;
-
-#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
-		// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
-		inline void addColours(std::string& message) const noexcept;
-#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
 
 		// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 		inline std::string replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept;
@@ -344,7 +343,7 @@ namespace sblogger
 		virtual ~Logger() = default;
 
 		//
-		// Public Methods
+		// Public methods
 		//
 
 		// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc). 
@@ -423,7 +422,9 @@ namespace sblogger
 		template<typename ...T>
 		inline void Trace(const std::string&& message, const T&& ...t);
 
+		//
 		// Generic Methods: Write a DEBUG level message to a stream 
+		//
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of DEBUG importance
 		template<typename ...T>
@@ -572,6 +573,11 @@ namespace sblogger
 		return ss.str();
 	}
 
+	// Adds ANSII colour codes if current stream supports them
+	// (The Logger base class does not do anything with the message, the method needing implementation from derived classes)
+	inline void Logger::addColours(std::string& message) const noexcept
+	{ }
+
 	// Add indent to string (if it is set)
 	inline void Logger::addIndent(std::string& message) const noexcept
 	{
@@ -629,28 +635,6 @@ namespace sblogger
 		}
 	}
 
-#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
-	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
-	inline void Logger::addColours(std::string& message) const noexcept
-	{
-		std::string colours[]{ "black", "red",	"green", "yellow", "blue", "magenta", "cyan", "white", "^black", "^red", "^green", "^yellow", "^blue", "^magenta", "^cyan", "^white" };
-		size_t placeholderPosition, placeholderSize, codes[]{ 30, 31, 32, 33, 34, 35, 36, 37 };
-
-		for (size_t i = 0u; i < 8u; ++i)
-		{
-			while ((placeholderPosition = message.find(colours[i] + '{')) != std::string::npos)
-			{
-				placeholderSize = colours[i].size();
-				message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholderSize + 3u, "\033[" + std::to_string(codes[i] + 60u) + 'm') : message.replace(placeholderPosition - 1u, placeholderSize + 2u, "\033[" + std::to_string(codes[i]) + 'm');
-				if ((placeholderPosition = message.find('}' + colours[i] + '%')) != std::string::npos)
-					message.replace(placeholderPosition, placeholderSize + 2u, "\033[m");
-			}
-		}
-
-		message += "\033[m";
-	}
-#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
-
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept
 	{
@@ -668,9 +652,7 @@ namespace sblogger
 		
 		addIndent(message);
 		addPadding(message);
-#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
 		addColours(message);
-#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
 		replacePredefinedPlaceholders(message);
 		replaceCurrentLevel(message);
 		replaceDateFormats(message);
@@ -1020,6 +1002,11 @@ namespace sblogger
 		// Protected methods
 		//
 
+#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
+		// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+		inline void addColours(std::string& message) const noexcept override;
+#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+
 		// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
 		inline void writeToStream(const std::string&& str) override;
 
@@ -1057,14 +1044,14 @@ namespace sblogger
 		inline ~StreamLogger() override;
 
 		//
-		// Overloaded Operators
+		// Overloaded operators
 		//
 
-		// Assignment Operator
+		// Assignment operator
 		inline StreamLogger& operator=(const StreamLogger& other) noexcept;
 
 		//
-		// Public Methods
+		// Public methods
 		//
 
 		// Flush appropriate stream
@@ -1111,10 +1098,7 @@ namespace sblogger
 	// Creates a Logger instance from another
 	inline StreamLogger::StreamLogger(StreamLogger&& other) noexcept
 		: Logger(other)
-	{
-		m_AutoFlush = other.m_AutoFlush;
-		m_StreamType = other.m_StreamType;
-	}
+	{ }
 
 	// Destructor
 
@@ -1130,10 +1114,58 @@ namespace sblogger
 	}
 
 	//
-	// Overloaded Operators
+	// Protected methods
 	//
 
-	// Assignment Operator
+#if defined SBLOGGER_COLOURS || defined SBLOGGER_COLORS
+	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+	inline void StreamLogger::addColours(std::string& message) const noexcept
+	{
+		static struct Colours
+		{
+			char name[12];
+			size_t code;
+		}colours[]{ { "reset", 0 }, { "black", 30 }, { "red", 31 }, { "green", 32 }, { "yellow", 33 }, { "blue", 34 }, { "magenta", 35 }, { "cyan", 36 }, { "white", 37 },
+				{"bg-black", 40 }, { "bg-red", 41 }, {"bg-green", 42 }, { "bg-yellow", 43 }, { "bg-blue", 44 }, { "bg-magenta", 45 }, { "bg-cyan", 46 }, { "bg-white", 47 } };
+
+		size_t placeholderPosition, placeholderSize, codes[]{ 40, 41, 42, 43, 44, 45, 46, 47, 30, 31, 32, 33, 34, 35, 36, 37 };
+		bool isBright;
+		char currentColour[17]{ '{' }, colourCode[6]{ '\033', '[' };
+
+		for (size_t i = 0u; i < 17u; ++i)
+			if ((placeholderPosition = message.find(colours[i].name)) != std::string::npos
+				&& placeholderPosition > 1u && message[placeholderPosition - 1u] == '{'
+				&& placeholderPosition < (message.size() - 1u) && message[placeholderPosition + std::strlen(colours[i].name)] == '}')
+			{
+				std::strncpy(currentColour + 1, colours[i].name, std::strlen(colours[i].name) + 1u);
+				std::strncat(currentColour, "}", 1u);
+				while ((placeholderPosition = message.find(currentColour)) != std::string::npos)
+				{
+					placeholderSize = std::strlen(currentColour);
+					message[placeholderPosition - 1u] == '^' ?
+						message.replace(placeholderPosition - 2u, placeholderSize + 2u, colours[i].code != 0 ? ("\033[" + std::to_string(colours[i].code + 60u) + 'm') : "\033[m")
+						: message.replace(placeholderPosition - 1u, placeholderSize + 1u, colours[i].code != 0 ? ("\033[" + std::to_string(colours[i].code) + 'm') : "\033[m");
+				}
+			}
+	}
+#endif	// Adds colours where the specific placeholders are found (e.g. %colour_name{...}colour_name%)
+
+	// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
+	inline void StreamLogger::writeToStream(const std::string&& str)
+	{
+		switch (m_StreamType)
+		{
+		case STREAM_TYPE::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
+		case STREAM_TYPE::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
+		default:                    std::cout << str;       if (m_AutoFlush) std::cout.flush();       break;
+		}
+	}
+
+	//
+	// Overloaded operators
+	//
+
+	// Assignment operator
 	inline StreamLogger& StreamLogger::operator=(const StreamLogger& other) noexcept
 	{
 		if (this != &other)
@@ -1147,16 +1179,9 @@ namespace sblogger
 		return *this;
 	}
 
-	// Writes string to appropriate stream based on instance STREAM_TYPE (m_StreamType)
-	inline void StreamLogger::writeToStream(const std::string&& str)
-	{
-		switch (m_StreamType)
-		{
-		case STREAM_TYPE::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
-		case STREAM_TYPE::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
-		default:                    std::cout << str;       if (m_AutoFlush) std::cout.flush();       break;
-		}
-	}
+	//
+	// Public methods
+	//
 
 	// Flush appropriate stream
 	inline void StreamLogger::Flush()
@@ -1240,14 +1265,14 @@ namespace sblogger
 		inline ~FileLogger() override;
 
 		//
-		// Overloaded Operators
+		// Overloaded operators
 		//
 
-		// Assignment Operator (deleted since having two streams for the same file causes certain output not to be writen).
+		// Assignment operator (deleted since having two streams for the same file causes certain output not to be writen).
 		inline FileLogger& operator=(const FileLogger& other) = delete;
 
 		//
-		// Public Methods
+		// Public methods
 		//
 
 		// Flush file stream
