@@ -1524,7 +1524,7 @@ namespace sblogger
 // Macros for logging. Adds support for file, line and function info in logs.
 //
 
-#if defined SBLOGGER_LOG_LEVEL && SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_OFF
+#if defined SBLOGGER_LOG_LEVEL && SBLOGGER_LOG_LEVEL < SBLOGGER_LEVEL_OFF
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_TRACE
 		#define SBLOGGER_TRACE(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
