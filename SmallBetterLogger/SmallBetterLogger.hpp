@@ -33,7 +33,7 @@ SOFTWARE.
 #define SBLOGGER_LEVEL_ERROR     4
 #define SBLOGGER_LEVEL_CRITICAL  5
 #define SBLOGGER_LEVEL_OFF       6
-// Define your prefered active level using the macro bellow, or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
+// Define your prefered active level (e.g. using the macro bellow), or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
 //#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
 
 // Either uncomment or define this macro, should your environment support colours and you wish to use them
@@ -53,10 +53,13 @@ SOFTWARE.
 // Cross-platform newline macros
 #ifdef SBLOGGER_NIX
 	#define SBLOGGER_NEWLINE '\n'
+	#define SBLOGGER_PATH_SEPARATOR '/'
 #elif SBLOGGER_OS9
 	#define SBLOGGER_NEWLINE '\r'
+	#define SBLOGGER_PATH_SEPARATOR '/'
 #else
 	#define SBLOGGER_NEWLINE "\r\n"
+	#define SBLOGGER_PATH_SEPARATOR '\\'
 #endif
 
 #ifdef SBLOGGER_LEGACY
@@ -334,9 +337,11 @@ namespace sblogger
 		// Replace current logging level in format
 		inline void replaceCurrentLevel(std::string& message) const noexcept;
 
+		// Replace other placeholders, such as those for file, line and function related information
+		inline void replaceOthers(std::string& message, const char* file, const char* line, const char* function) const noexcept;
+
 		// Replace date format using std::strftime (pre C++20) or std::chrono::format
 		inline void replaceDateFormats(std::string& message) const noexcept;
-
 
 	public:
 		// Default destructor
@@ -589,7 +594,7 @@ namespace sblogger
 	inline void Logger::addPadding(std::string& message) const noexcept
 	{
 #ifdef SBLOGGER_LEGACY
-		std::string placeholders[]{ "msg", "lvl", "tr", "dbg", "inf", "wn", "er", "crt" };
+		std::string placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wn", "er", "crt" };
 #else
 		std::string_view placeholders[] { "msg", "lvl", "tr", "dbg", "inf", "wn", "er", "crt" };
 #endif
@@ -638,9 +643,16 @@ namespace sblogger
 	// Append format (if it exists) and replace all "{n}" placeholders with their respective values (n=0,...)
 	inline std::string Logger::replacePlaceholders(std::string message, std::vector<std::string>&& items) const noexcept
 	{
+		bool hasMacros = false;
 		std::string placeholder;
-		size_t placeholderPosition, placeholderSize;
-		for (size_t i = 0u; i < items.size(); ++i)
+		size_t placeholderPosition, placeholderSize, noArguments = items.size();
+
+		if(noArguments > 3u)
+			for (size_t i = noArguments - 1u; i >= 0u && !hasMacros; --i)
+				if (items[i] == "__MACROS__")
+					hasMacros = true;
+
+		for (size_t i = 0u; i < noArguments; ++i)
 		{
 			placeholderSize = (placeholder = '{' + std::to_string(i) + '}').size();
 			while ((placeholderPosition = message.find(placeholder)) != std::string::npos)
@@ -655,6 +667,8 @@ namespace sblogger
 		addColours(message);
 		replacePredefinedPlaceholders(message);
 		replaceCurrentLevel(message);
+		if(hasMacros)
+			replaceOthers(message, items[noArguments - 3u].c_str(), items[noArguments - 2u].c_str(), items[noArguments - 1u].c_str());
 		replaceDateFormats(message);
 
 		return message;
@@ -725,6 +739,31 @@ namespace sblogger
 			}
 	}
 
+	// Replace other placeholders, such as those for file, line and function related information
+	inline void Logger::replaceOthers(std::string& message, const char* file, const char* line, const char* function) const noexcept
+	{
+#ifdef SBLOGGER_LEGACY
+		std::string placeholder = "src";
+#else
+		std::string_view placeholder = "src";
+#endif
+		size_t placeholderPosition = message.find(placeholder);
+		if (placeholderPosition != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 4u, std::strrchr(file, SBLOGGER_PATH_SEPARATOR) + 1);
+
+		placeholder = "fsrc";
+		if ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 5u, file);
+
+		placeholder = "ln";
+		if ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 3u, line);
+
+		placeholder = "func";
+		if ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 5u, function);
+	}
+
 	// Replace date format using std::strftime (pre C++20) or std::chrono::format
 	inline void Logger::replaceDateFormats(std::string& message) const noexcept
 	{
@@ -732,7 +771,7 @@ namespace sblogger
 #ifdef SBLOGGER_OLD_DATES
 		std::time_t currentTime = std::time(nullptr);
 		size_t messageLength = message.size();
-		char* buffer = new char[messageLength + 100u]{ 0 };
+		char* buffer = new char[messageLength + 101u]{ 0 };
 
 		if (std::strftime(buffer, sizeof(char) * (messageLength + 100u), message.c_str(), std::localtime(&currentTime)))
 			message = std::string(buffer);
@@ -1481,6 +1520,52 @@ namespace sblogger
 	}
 }
 
-// TODO: Macros for logging. Adds support for file, line and function info in logs. 
-//#define TEST __FILE__
+//
+// TODO: Macros for logging. Adds support for file, line and function info in logs.
+//
+
+#if defined SBLOGGER_LOG_LEVEL && SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_OFF
+	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_TRACE
+		#define SBLOGGER_TRACE(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+	#else
+		#define SBLOGGER_TRACE(x, ...)
+	#endif
+
+	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_DEBUG
+		#define SBLOGGER_DEBUG(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+	#else
+		#define SBLOGGER_DEBUG(x, ...)
+	#endif
+
+	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_INFO
+		#define SBLOGGER_INFO(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+	#else
+		#define SBLOGGER_INFO(x, ...)
+	#endif
+
+	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_WARN
+		#define SBLOGGER_WARN(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+	#else
+		#define SBLOGGER_WARN(x, ...)
+	#endif
+
+	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_ERROR
+		#define SBLOGGER_ERROR(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+	#else
+		#define SBLOGGER_ERROR(x, ...)
+	#endif
+
+	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_CRITICAL
+		#define SBLOGGER_CRITICAL(x, ...)	x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+	#else
+		#define SBLOGGER_CRITICAL(x, ...)
+	#endif
+#else
+	#define SBLOGGER_TRACE(x, ...)
+	#define SBLOGGER_DEBUG(x, ...)
+	#define SBLOGGER_INFO(x, ...)
+	#define SBLOGGER_WARN(x, ...)
+	#define SBLOGGER_ERROR(x, ...)
+	#define SBLOGGER_CRITICAL(x, ...)
+#endif
 #endif

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
 #include "SmallBetterLogger.hpp"
 
 int main()
@@ -41,6 +42,7 @@ int main()
 	testingLogger.WriteLine("%2.3Test, test");
 	testingLogger.WriteLine("%.5^er");
 	testingLogger.WriteLine("t%{reset}%{red}e%{green}s%{blue}t%{magenta}i%{yellow}n%{cyan}g colors%{reset}");
+	SBLOGGER_TRACE(testingLogger, "%func");
 	// ===================================== END TODELETE =====================================
 
 	delete logLog;
