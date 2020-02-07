@@ -1521,7 +1521,7 @@ namespace sblogger
 }
 
 //
-// TODO: Macros for logging. Adds support for file, line and function info in logs.
+// Macros for logging. Adds support for file, line and function info in logs.
 //
 
 #if defined SBLOGGER_LOG_LEVEL && SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_OFF
