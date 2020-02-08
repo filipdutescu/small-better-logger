@@ -1578,15 +1578,15 @@ namespace sblogger
 		// By default there is no formatting and auto flush is set to true
 		inline TimedFileLogger(const char* filePath, const char* format = nullptr, bool autoFlush = true);
 
-		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
 		inline TimedFileLogger(const char* filePath, const std::string& format, bool autoFlush = true);
 
-		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
 		inline TimedFileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true);
 
-		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
 		inline TimedFileLogger(const std::string&& filePath, const std::string&& format = std::string(), bool autoFlush = true);
 
@@ -1630,7 +1630,7 @@ namespace sblogger
 
 	}
 
-	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
 	inline TimedFileLogger::TimedFileLogger(const char* filePath, const std::string& format, bool autoFlush)
 		: FileLogger(filePath, format, autoFlush)
@@ -1638,7 +1638,7 @@ namespace sblogger
 
 	}
 
-	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
 	inline TimedFileLogger::TimedFileLogger(const std::string& filePath, const std::string& format, bool autoFlush)
 		: FileLogger(filePath, format, autoFlush)
@@ -1646,7 +1646,7 @@ namespace sblogger
 
 	}
 
-	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
 	inline TimedFileLogger::TimedFileLogger(const std::string&& filePath, const std::string&& format, bool autoFlush)
 		: FileLogger(filePath, format, autoFlush)
