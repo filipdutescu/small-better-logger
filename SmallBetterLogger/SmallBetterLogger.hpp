@@ -33,10 +33,14 @@ SOFTWARE.
 #define SBLOGGER_LEVEL_ERROR     4
 #define SBLOGGER_LEVEL_CRITICAL  5
 #define SBLOGGER_LEVEL_OFF       6
+//
 // Define your prefered active level (e.g. using the macro bellow), or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
+//
 //#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
 
+//
 // Either uncomment or define this macro, should your environment support colours and you wish to use them
+//
 #define SBLOGGER_COLORS
 
 #if __cplusplus != 199711L
@@ -74,19 +78,26 @@ SOFTWARE.
 // Used for formatting and creating the output string
 #include <sstream>
 #include <vector>
-#include <regex>
+
+// Used for processing using time such as timed file logs and date formatting (if SBLOGGER_LEGACY is not defined)
+#include <chrono>
+
+// Used for asynchronous operations such as changing files for timed file logs
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 // For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
-#ifndef SBLOGGER_LEGACY
-// Used for truncating log files
+#ifdef SBLOGGER_LEGACY
+// Used for file path checking
+#include <regex>
+#else
+// Used for file path checking and file manipulation
 #include <filesystem>
 #endif
 
 // For formatting dates to string pre C++20
-#ifndef SBLOGGER_OLD_DATES
-// Make use of std::chrono::format
-#include <chrono>
-#else
+#ifdef SBLOGGER_OLD_DATES
 // Make use of std::strftime
 #include <ctime>
 #endif
@@ -521,28 +532,28 @@ namespace sblogger
 #else
 			std::string_view placeholder = "tr";
 #endif
-			size_t placeholderPosition = m_Format.find(placeholder);
-			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			size_t placeholderPosition;
+			while ((placeholderPosition = m_Format.find(placeholder)) != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
 
-			placeholderPosition = m_Format.find(placeholder = "dbg");
-			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			placeholder = "dbg";
+			while ((placeholderPosition = m_Format.find(placeholder)) != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "DEBUG") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Debug");
 
-			placeholderPosition = m_Format.find(placeholder = "inf");
-			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			placeholder = "inf";
+			while ((placeholderPosition = m_Format.find(placeholder)) != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "INFO") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Info");
 
-			placeholderPosition = m_Format.find(placeholder = "wn");
-			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			placeholder = "wn";
+			while ((placeholderPosition = m_Format.find(placeholder)) != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "WARN") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Warn");
 
-			placeholderPosition = m_Format.find(placeholder = "er");
-			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			placeholder = "er";
+			while ((placeholderPosition = m_Format.find(placeholder)) != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "ERROR") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Error");
 
-			placeholderPosition = m_Format.find(placeholder = "crt");
-			if (placeholderPosition != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
+			placeholder = "crt";
+			while ((placeholderPosition = m_Format.find(placeholder)) != std::string::npos && (m_Format[placeholderPosition - 1u] == '%' || m_Format[placeholderPosition - 2u] == '%'))
 				m_Format[placeholderPosition - 1u] == '^' ? m_Format.replace(placeholderPosition - 2u, placeholder.size() + 2u, "CRITICAL") : m_Format.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Critical");
 		}
 	}
@@ -581,7 +592,29 @@ namespace sblogger
 	// Adds ANSII colour codes if current stream supports them
 	// (The Logger base class does not do anything with the message, the method needing implementation from derived classes)
 	inline void Logger::addColours(std::string& message) const noexcept
-	{ }
+	{ 
+		char colours[][12]{ { "reset" }, { "black" }, { "red" }, { "green" }, { "yellow" }, { "blue" }, { "magenta" }, { "cyan" }, { "white" },
+				{ "bg-black" }, { "bg-red" }, { "bg-green" }, { "bg-yellow" }, { "bg-blue" }, { "bg-magenta" }, { "bg-cyan" }, { "bg-white" } };
+
+		size_t placeholderPosition, placeholderSize;
+		char currentColour[17]{ '{' };
+
+		for (size_t i = 0u; i < 17u; ++i)
+			if ((placeholderPosition = message.find(colours[i])) != std::string::npos
+				&& placeholderPosition > 1u && message[placeholderPosition - 1u] == '{'
+				&& placeholderPosition < (message.size() - 1u) && message[placeholderPosition + std::strlen(colours[i])] == '}')
+			{
+				std::strncpy(currentColour + 1, colours[i], std::strlen(colours[i]) + 1u);
+				std::strncat(currentColour, "}", 1u);
+				while ((placeholderPosition = message.find(currentColour)) != std::string::npos)
+				{
+					placeholderSize = std::strlen(currentColour);
+					message[placeholderPosition - 1u] == '^' ?
+						message.replace(placeholderPosition - 2u, placeholderSize + 2u, "")
+						: message.replace(placeholderPosition - 1u, placeholderSize + 1u, "");
+				}
+			}
+	}
 
 	// Add indent to string (if it is set)
 	inline void Logger::addIndent(std::string& message) const noexcept
@@ -669,6 +702,8 @@ namespace sblogger
 		replaceCurrentLevel(message);
 		if(hasMacros)
 			replaceOthers(message, items[noArguments - 3u].c_str(), items[noArguments - 2u].c_str(), items[noArguments - 1u].c_str());
+		else
+			replaceOthers(message, nullptr, nullptr, nullptr);
 		replaceDateFormats(message);
 
 		return message;
@@ -682,23 +717,23 @@ namespace sblogger
 #else
 		std::string_view placeholder = "tr";
 #endif
-		size_t placeholderPosition = message.find(placeholder);
-		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
+		size_t placeholderPosition;
+		while ((placeholderPosition = message.find(placeholder)) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "TRACE") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Trace");
 
-		if ((placeholderPosition = message.find(placeholder = "dbg")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
+		while ((placeholderPosition = message.find(placeholder = "dbg")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "DEBUG") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Debug");
 
-		if ((placeholderPosition = message.find(placeholder = "inf")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
+		while ((placeholderPosition = message.find(placeholder = "inf")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "INFO") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Info");
 
-		if ((placeholderPosition = message.find(placeholder = "wn")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
+		while ((placeholderPosition = message.find(placeholder = "wn")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "WARN") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Warn");
 
-		if ((placeholderPosition = message.find(placeholder = "er")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
+		while ((placeholderPosition = message.find(placeholder = "er")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "ERROR") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Error");
 
-		if ((placeholderPosition = message.find(placeholder = "crt")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
+		while ((placeholderPosition = message.find(placeholder = "crt")) != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			message[placeholderPosition - 1u] == '^' ? message.replace(placeholderPosition - 2u, placeholder.size() + 2u, "CRITICAL") : message.replace(placeholderPosition - 1u, placeholder.size() + 2u, "Critical");
 	}
 
@@ -748,20 +783,20 @@ namespace sblogger
 		std::string_view placeholder = "src";
 #endif
 		size_t placeholderPosition = message.find(placeholder);
-		if (placeholderPosition != std::string::npos && message[placeholderPosition - 1u] == '%')
-			message.replace(placeholderPosition - 1u, 4u, std::strrchr(file, SBLOGGER_PATH_SEPARATOR) + 1);
+		while (placeholderPosition != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 4u, file == nullptr ? "" : (std::strrchr(file, SBLOGGER_PATH_SEPARATOR) + 1));
 
 		placeholder = "fsrc";
-		if ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
-			message.replace(placeholderPosition - 1u, 5u, file);
+		while ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 5u, file == nullptr ? "" : file);
 
 		placeholder = "ln";
-		if ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
-			message.replace(placeholderPosition - 1u, 3u, line);
+		while ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 3u, line == nullptr ? "" : line);
 
 		placeholder = "func";
-		if ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
-			message.replace(placeholderPosition - 1u, 5u, function);
+		while ((placeholderPosition = message.find(placeholder)) != std::string::npos && message[placeholderPosition - 1u] == '%')
+			message.replace(placeholderPosition - 1u, 5u, function == nullptr ? "" : function);
 	}
 
 	// Replace date format using std::strftime (pre C++20) or std::chrono::format
@@ -1136,7 +1171,7 @@ namespace sblogger
 
 	// Creates a Logger instance from another
 	inline StreamLogger::StreamLogger(StreamLogger&& other) noexcept
-		: Logger(other)
+		: Logger(other), m_StreamType(other.m_StreamType)
 	{ }
 
 	// Destructor
@@ -1165,9 +1200,9 @@ namespace sblogger
 			char name[12];
 			size_t code;
 		}colours[]{ { "reset", 0 }, { "black", 30 }, { "red", 31 }, { "green", 32 }, { "yellow", 33 }, { "blue", 34 }, { "magenta", 35 }, { "cyan", 36 }, { "white", 37 },
-				{"bg-black", 40 }, { "bg-red", 41 }, {"bg-green", 42 }, { "bg-yellow", 43 }, { "bg-blue", 44 }, { "bg-magenta", 45 }, { "bg-cyan", 46 }, { "bg-white", 47 } };
+				{ "bg-black", 40 }, { "bg-red", 41 }, { "bg-green", 42 }, { "bg-yellow", 43 }, { "bg-blue", 44 }, { "bg-magenta", 45 }, { "bg-cyan", 46 }, { "bg-white", 47 } };
 
-		size_t placeholderPosition, placeholderSize, codes[]{ 40, 41, 42, 43, 44, 45, 46, 47, 30, 31, 32, 33, 34, 35, 36, 37 };
+		size_t placeholderPosition, placeholderSize;
 		bool isBright;
 		char currentColour[17]{ '{' }, colourCode[6]{ '\033', '[' };
 
@@ -1246,8 +1281,9 @@ namespace sblogger
 	// Used to log messages to a file stream
 	class FileLogger : public Logger
 	{
+	protected:
 		//
-		// Private members
+		// Protected members
 		//
 
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
@@ -1262,7 +1298,7 @@ namespace sblogger
 		//
 
 		// Writes string to file stream and flush if auto flush is set
-		inline void writeToStream(const std::string&& str) override;
+		inline virtual void writeToStream(const std::string&& str) override;
 
 	public:
 		//
@@ -1270,7 +1306,7 @@ namespace sblogger
 		//
 
 		// Deleted to prevent usage without providing a file path
-		FileLogger() = delete;
+		inline FileLogger() = delete;
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default there is no formatting and auto flush is set to true
@@ -1278,7 +1314,7 @@ namespace sblogger
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default there is no formatting and auto flush is set to true
-		inline FileLogger(const char* filePath, const std::string& format = std::string(), bool autoFlush = true);
+		inline FileLogger(const char* filePath, const std::string& format, bool autoFlush = true);
 
 		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
 		// By default there is no formatting and auto flush is set to true
@@ -1290,13 +1326,11 @@ namespace sblogger
 
 		// Copy constructor
 
-		// Creates a FileLogger instance from an already existing one
-		inline FileLogger(const FileLogger& other);
+		inline FileLogger(const FileLogger& other) = delete;
 
 		// Move constructor
 
-		// Creates a FileLogger instance from another one
-		inline FileLogger(FileLogger&& other) noexcept;
+		inline FileLogger(FileLogger&& other) = delete;
 
 		// Destructor
 
@@ -1318,7 +1352,7 @@ namespace sblogger
 		inline void Flush() override;
 
 		// Clear log file
-		inline void ClearLogs();
+		inline virtual void ClearLogs() noexcept;
 	};
 
 	//
@@ -1332,23 +1366,30 @@ namespace sblogger
 	{
 		if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
 
+		std::string formattedFilePath(filePath);
+		addPadding(formattedFilePath);
+		addColours(formattedFilePath);
+		replacePredefinedPlaceholders(formattedFilePath);
+		replaceCurrentLevel(formattedFilePath);
+		replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
+		replaceDateFormats(formattedFilePath);
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-		m_FilePath = filePath;
+		m_FilePath = formattedFilePath;
 		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
-		m_FilePath = std::filesystem::path(filePath);
+		m_FilePath = std::filesystem::path(formattedFilePath);
 		// Check file path for null, empty, inexistent or whitespace only paths and filenames
 		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
 		auto parentPath = m_FilePath.parent_path();
-		if (!parentPath.empty() && !std::filesystem::directory_entry(parentPath).exists()) throw InvalidFilePathException(filePath);
+		if (!parentPath.empty() && !std::filesystem::directory_entry(parentPath).exists()) throw InvalidFilePathException(formattedFilePath);
 #endif
-		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+		m_FileStream = std::fstream(m_FilePath, std::fstream::app | std::fstream::out);
 
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
-		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(formattedFilePath);
 #endif
 	}
 
@@ -1359,22 +1400,29 @@ namespace sblogger
 	{
 		if (filePath == nullptr || filePath[0] == '\0') throw NullOrEmptyPathException();
 
+		std::string formattedFilePath(filePath);
+		addPadding(formattedFilePath);
+		addColours(formattedFilePath);
+		replacePredefinedPlaceholders(formattedFilePath);
+		replaceCurrentLevel(formattedFilePath);
+		replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
+		replaceDateFormats(formattedFilePath);
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-		m_FilePath = filePath;
+		m_FilePath = formattedFilePath;
 		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
-		m_FilePath = std::filesystem::path(filePath);
+		m_FilePath = std::filesystem::path(formattedFilePath);
 		// Check file path for null, empty, inexistent or whitespace only paths and filenames
 		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(formattedFilePath);
 #endif
-		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+		m_FileStream = std::fstream(m_FilePath, std::fstream::app | std::fstream::out);
 
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
-		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(formattedFilePath);
 #endif
 	}
 
@@ -1383,22 +1431,29 @@ namespace sblogger
 	inline FileLogger::FileLogger(const std::string& filePath, const std::string& format, bool autoFlush)
 		: Logger(format, autoFlush)
 	{
+		std::string formattedFilePath(filePath);
+		addPadding(formattedFilePath);
+		addColours(formattedFilePath);
+		replacePredefinedPlaceholders(formattedFilePath);
+		replaceCurrentLevel(formattedFilePath);
+		replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
+		replaceDateFormats(formattedFilePath);
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-		m_FilePath = filePath;
+		m_FilePath = formattedFilePath;
 		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
-		m_FilePath = std::filesystem::path(filePath);
+		m_FilePath = std::filesystem::path(formattedFilePath);
 		// Check file path for null, empty, inexistent or whitespace only paths and filenames
 		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(formattedFilePath);
 #endif
-		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+		m_FileStream = std::fstream(m_FilePath, std::fstream::app | std::fstream::out);
 
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
-		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(formattedFilePath);
 #endif
 	}
 
@@ -1407,57 +1462,30 @@ namespace sblogger
 	inline FileLogger::FileLogger(const std::string&& filePath, const std::string&& format, bool autoFlush)
 		: Logger(format, autoFlush)
 	{
+		std::string formattedFilePath(filePath);
+		addPadding(formattedFilePath);
+		addColours(formattedFilePath);
+		replacePredefinedPlaceholders(formattedFilePath);
+		replaceCurrentLevel(formattedFilePath);
+		replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
+		replaceDateFormats(formattedFilePath);
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-		m_FilePath = filePath;
+		m_FilePath = formattedFilePath;
 		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
 #else
-		m_FilePath = std::filesystem::path(filePath);
+		m_FilePath = std::filesystem::path(formattedFilePath);
 		// Check file path for null, empty, inexistent or whitespace only paths and filenames
 		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
 		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(filePath);
+		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(formattedFilePath);
 #endif
-		m_FileStream = std::fstream(filePath, std::fstream::app | std::fstream::out);
+		m_FileStream = std::fstream(m_FilePath, std::fstream::app | std::fstream::out);
 
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
 #else
-		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
+		if (!m_FileStream.is_open()) throw InvalidFilePathException(formattedFilePath);
 #endif
-	}
-
-	// Copy constructor
-	// Creates a FileLogger instance from an already existing one
-	inline FileLogger::FileLogger(const FileLogger& other)
-		: Logger(other)
-	{
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-		m_FilePath = other.m_FilePath;
-		if (!std::regex_match(m_FilePath, SBLOGGER_FILE_PATH_REGEX)) throw InvalidFilePathException(m_FilePath);
-#else
-		m_FilePath = std::filesystem::path(other.m_FilePath);
-		// Check file path for null, empty, inexistent or whitespace only paths and filenames
-		if (!m_FilePath.has_filename() || !m_FilePath.has_extension()) throw NullOrEmptyPathException();
-		if (m_FilePath.filename().replace_extension().string().find_first_not_of(' ') == std::string::npos) throw NullOrWhitespaceNameException();
-		if (!std::filesystem::directory_entry(m_FilePath.parent_path()).exists()) throw InvalidFilePathException(other.m_FilePath.string());
-#endif
-		m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
-
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath);
-#else
-		if (!m_FileStream.is_open()) throw InvalidFilePathException(m_FilePath.string());
-#endif
-	}
-
-	// Move constructor
-
-	// Creates a FileLogger instance from another one
-	inline FileLogger::FileLogger(FileLogger&& other) noexcept
-		: Logger(other)
-	{
-		m_FilePath = std::move(other.m_FilePath);
-		m_FileStream = std::fstream(other.m_FilePath, std::fstream::app | std::fstream::out);
 	}
 
 	// Destructor
@@ -1505,7 +1533,7 @@ namespace sblogger
 	}
 
 	// Clear log file
-	inline void FileLogger::ClearLogs()
+	inline void FileLogger::ClearLogs() noexcept
 	{
 		if (m_FileStream.is_open())
 		{
@@ -1518,6 +1546,76 @@ namespace sblogger
 #endif
 		}
 	}
+
+	
+	class TimedFileLogger : public FileLogger
+	{
+		std::thread m_FileChangeThread;
+		std::mutex m_Mutex;
+		std::condition_variable m_ConditionVariable;
+		std::string m_FileNameFormat;
+
+	protected:
+		//
+		// Protected methods
+		//
+
+		// Writes string to file stream and flush if auto flush is set
+		inline virtual void writeToStream(const std::string&& str) override;
+
+		// Check if it is time to change the current file (closing it) and open the new one, according to the time provided
+
+	public:
+		//
+		// Constructors and destructors
+		//
+
+		// Deleted to prevent usage without providing a file path
+		inline TimedFileLogger() = delete;
+
+		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+		// By default there is no formatting and auto flush is set to true
+		inline TimedFileLogger(const char* filePath, const char* format = nullptr, bool autoFlush = true);
+
+		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// By default there is no formatting and auto flush is set to true
+		inline TimedFileLogger(const char* filePath, const std::string& format, bool autoFlush = true);
+
+		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// By default there is no formatting and auto flush is set to true
+		inline TimedFileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true);
+
+		// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+		// By default there is no formatting and auto flush is set to true
+		inline TimedFileLogger(const std::string&& filePath, const std::string&& format = std::string(), bool autoFlush = true);
+
+		// Copy constructor
+
+		inline TimedFileLogger(const TimedFileLogger& other) = delete;
+
+		// Move constructor
+
+		inline TimedFileLogger(TimedFileLogger&& other) = delete;
+
+		// Destructor
+
+		// Flush and close stream if open
+		inline ~TimedFileLogger() override;
+
+		//
+		// Overloaded operators
+		//
+
+		// Assignment operator (deleted since having two streams for the same file causes certain output not to be writen).
+		inline TimedFileLogger& operator=(const TimedFileLogger& other) = delete;
+
+		//
+		// Public methods
+		//
+
+		// Clear log file
+		inline virtual void ClearLogs() noexcept override;
+	};
 }
 
 //

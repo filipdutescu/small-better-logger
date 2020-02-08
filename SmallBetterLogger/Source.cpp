@@ -36,7 +36,7 @@ int main()
 	fileLogger.Write("Hello World!");
 	
 	// ======================================= TODELETE =======================================
-	sblogger::StreamLogger testingLogger("${yellow}[%F %T] $^{yellow}%msg%{yellow} [%^lvl]${reset}");
+	sblogger::StreamLogger testingLogger("%{yellow}[%F %T] %^{yellow}%msg%{yellow} [%^lvl]%{reset}");
 
 	testingLogger.WriteLine("Test");
 	testingLogger.WriteLine("%2.3Test, test");
