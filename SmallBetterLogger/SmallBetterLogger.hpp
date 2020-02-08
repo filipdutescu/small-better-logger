@@ -1564,13 +1564,14 @@ namespace sblogger
 		inline virtual void writeToStream(const std::string&& str) override;
 
 		// Check if it is time to change the current file (closing it) and open the new one, according to the time provided
+		inline void changeFile() noexcept;
 
 	public:
 		//
 		// Constructors and destructors
 		//
 
-		// Deleted to prevent usage without providing a file path
+		// Deleted to prevent usage without providing a file path and time to change it at
 		inline TimedFileLogger() = delete;
 
 		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
@@ -1616,6 +1617,64 @@ namespace sblogger
 		// Clear log file
 		inline virtual void ClearLogs() noexcept override;
 	};
+
+	//
+	// Constructors and destructors
+	//
+
+	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+	// By default there is no formatting and auto flush is set to true
+	inline TimedFileLogger::TimedFileLogger(const char* filePath, const char* format, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush)
+	{
+
+	}
+
+	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// By default there is no formatting and auto flush is set to true
+	inline TimedFileLogger::TimedFileLogger(const char* filePath, const std::string& format, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush)
+	{
+
+	}
+
+	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// By default there is no formatting and auto flush is set to true
+	inline TimedFileLogger::TimedFileLogger(const std::string& filePath, const std::string& format, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush)
+	{
+
+	}
+
+	// Creates an instance of FileLogger which outputs to a file stream given by the "filePath" parameter
+	// By default there is no formatting and auto flush is set to true
+	inline TimedFileLogger::TimedFileLogger(const std::string&& filePath, const std::string&& format, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush)
+	{
+
+	}
+
+	// Destructor
+
+	// Flush and close stream if open
+	inline TimedFileLogger::~TimedFileLogger()
+	{
+		if (m_FileChangeThread.joinable())
+			m_FileChangeThread.join();
+
+		if(m_FileStream.is_open())
+			m_FileStream.close();
+	}
+
+	//
+	// Public methods
+	//
+
+	// Clear log file
+	inline void TimedFileLogger::ClearLogs() noexcept
+	{
+
+	}
 }
 
 //
