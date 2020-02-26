@@ -1,11 +1,6 @@
 #include <iostream>
 #include <string>
 
-// ======================================= TODELETE =======================================
-#include <chrono>
-#include <thread>
-// ===================================== END TODELETE =====================================
-
 #define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
 #include "SmallBetterLogger.hpp"
 
@@ -39,43 +34,6 @@ int main()
 	fileLogger.WriteLine("This is a test.");	// All methods previously shown can also be used with files
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
-	
-	// ======================================= TODELETE =======================================
-	sblogger::StreamLogger testingLogger("%{yellow}[%F %T] %^{yellow}%msg%{yellow} [%^lvl]%{reset}\n");
-
-	testingLogger.WriteLine("Test");
-	testingLogger.WriteLine("%2.3Test, test");
-	testingLogger.WriteLine("%.5^er");
-	testingLogger.WriteLine("t%{reset}%{red}e%{green}s%{blue}t%{magenta}i%{yellow}n%{cyan}g colors%{reset}");
-	SBLOGGER_TRACE(testingLogger, "%src:%ln in %func%{reset}");
-
-	try
-	{
-		auto dailyLogger = new sblogger::DailyLogger("%F %H-%M-%S.log", "[%T]");
-		using namespace std::chrono_literals;
-		for (unsigned int i = 0u; i < 3u; ++i)
-		{
-			std::cout << "Currently " << 3u - i << " minutes left...\n";
-			std::this_thread::sleep_for(15s);
-			std::cout << "45s left from this minute\n";
-			dailyLogger->Trace("Testing the daily logger before thread wait 1\n");
-			std::this_thread::sleep_for(15s);
-			std::cout << "30s left from this minute\n";
-			dailyLogger->Trace("Testing the daily logger before thread wait 2\n");
-			std::this_thread::sleep_for(15s);
-			std::cout << "15s left from this minute\n";
-			dailyLogger->Trace("Testing the daily logger after thread wait 1\n");
-			std::this_thread::sleep_for(15s);
-			dailyLogger->Trace("Testing the daily logger after thread wait 2\n");
-		}
-		delete dailyLogger;
-		std::cout << "Done...\n";
-	}
-	catch (sblogger::SBLoggerException sble)
-	{
-		std::cout << sble.What() << '\n';
-	}
-	// ===================================== END TODELETE =====================================
 
 	delete logLog;
 	std::cin.get();
