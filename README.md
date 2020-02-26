@@ -9,7 +9,7 @@ This section will provide the information needed to include **SBLogger** in your
 This library was developed using **C++17** and thus you will have the best experience using a **C++17 (or later)** compiler. For compilers pre **C++17** (**C++11** or **C++14**) or post **C++17** (as of this writing, **C++20**), please refer to [Setting Up](README.md#Setting-Up).
 
 ### Including as Source Code
-All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and added as a header file in your code:
+All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and add it as a header file in your code:
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
@@ -33,8 +33,6 @@ Please define them either before including **SBLogger** or in the first line of 
 ````
 > ***Note:*** *For **MSVC** you can fix this problem, by setting up the **`/Zc:__cplusplus`** compiler option. If you do not know how to do this, please refer to the following [Microsoft guide](https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019#to-set-this-compiler-option-in-visual-studio) for setting it up.*
 
-> ***Note:*** *The library assumes by default, that you are using a C++17 compiler.*
-
 #### Cross-Platform Info
 In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
   * ```#define SBLOGGER_NIX``` - for **Unix/Linux** and **Mac OS X+**
@@ -47,9 +45,10 @@ In order for **SBLogger** to work properly outside of **MS Windows**, you should
 ## Usage
 All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
   * **```sblogger::StreamLogger```** (which writes to the standard streams)
-  * **```sblogger::FileLogger```** (which writes to a file) 
+  * **```sblogger::FileLogger```** (which writes to a file) - which also has a specialized derivate,
+    * **```sblogger::DailyLogger```** (which writes to a file that changes daily at the specified time) 
 
-There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. 
+There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. The library also defines its own custom errors ***(WIP)***.
 
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
@@ -120,7 +119,7 @@ If you wanted to stylize your logs a bit, a basic way to do this is to use a [fo
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
-//...
+...
 int main()
 {
   sblogger::StreamLogger logger("[MyLogFormat]");

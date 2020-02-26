@@ -136,7 +136,7 @@ namespace sblogger
 	//
 
 	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
-	enum LOG_LEVELS
+	enum class LOG_LEVELS
 	{ 
 		TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF 
 	};
@@ -286,6 +286,31 @@ namespace sblogger
 	{ }
 
 	//
+	// TimeRangeException  
+	//
+
+	// Thrown when a time related value is out of bounds (e.g.: hours not in [0, 23])
+	class TimeRangeException : public SBLoggerException
+	{
+	public:
+		//
+		// Constructors and destructors
+		//
+
+		// Default constructor
+		TimeRangeException();
+	};
+
+	//
+	// Constructors and destructors
+	//
+
+	// Default constructor
+	TimeRangeException::TimeRangeException()
+		: SBLoggerException("Time value not in the allowed interval.")
+	{ }
+
+	//
 	// Classes' definitions
 	//
 
@@ -375,7 +400,7 @@ namespace sblogger
 		inline void SetFormat(const std::string& format);
 
 		// Flush appropriate stream
-		virtual inline void Flush() = 0;
+		virtual inline void Flush() noexcept = 0;
 
 		// Indent (prepend '\t') log, returns the number of indents the final message will contain
 		inline const size_t Indent() noexcept;
@@ -1129,7 +1154,7 @@ namespace sblogger
 		//
 
 		// Flush appropriate stream
-		virtual inline void Flush() override;
+		virtual inline void Flush() noexcept override;
 
 		// Change the logger's stream type (to a different "STREAM_TYPE")
 		inline void SetStreamType(STREAM_TYPE streamType);
@@ -1258,7 +1283,7 @@ namespace sblogger
 	//
 
 	// Flush appropriate stream
-	inline void StreamLogger::Flush()
+	inline void StreamLogger::Flush() noexcept
 	{
 		switch (m_StreamType)
 		{
@@ -1348,8 +1373,15 @@ namespace sblogger
 		// Public methods
 		//
 
+		// Get the file path
+#if SBLOGGER_LEGACY
+		std::string GetFilePath() const noexcept;
+#else
+		std::filesystem::path GetFilePath() const noexcept;
+#endif
+
 		// Flush file stream
-		inline void Flush() override;
+		inline virtual void Flush() noexcept override;
 
 		// Clear log file
 		inline virtual void ClearLogs() noexcept;
@@ -1525,8 +1557,18 @@ namespace sblogger
 	// Public methods
 	//
 
+	// Get the file path
+#if SBLOGGER_LEGACY
+	std::string FileLogger::GetFilePath() const noexcept
+#else
+	std::filesystem::path FileLogger::GetFilePath() const noexcept
+#endif
+	{
+		return m_FilePath;
+	}
+
 	// Flush file stream
-	inline void FileLogger::Flush()
+	inline void FileLogger::Flush() noexcept
 	{
 		if(m_FileStream.is_open())
 			m_FileStream.flush();
@@ -1548,14 +1590,19 @@ namespace sblogger
 	}
 
 	
-	class TimedFileLogger : public FileLogger
+	class DailyLogger : public FileLogger
 	{
+		//
+		// Private members
+		//
+
 		std::thread m_FileChangeThread;
 		std::mutex m_Mutex;
-		std::condition_variable m_ConditionVariable;
 		std::string m_FileNameFormat;
-
-	protected:
+		std::chrono::system_clock::time_point m_NextChangeTime;
+		int m_Hours, m_Minutes, m_Seconds;
+		bool m_Stop;
+		
 		//
 		// Protected methods
 		//
@@ -1564,7 +1611,7 @@ namespace sblogger
 		inline virtual void writeToStream(const std::string&& str) override;
 
 		// Check if it is time to change the current file (closing it) and open the new one, according to the time provided
-		inline void changeFile() noexcept;
+		inline void changeFile();
 
 	public:
 		//
@@ -1572,47 +1619,50 @@ namespace sblogger
 		//
 
 		// Deleted to prevent usage without providing a file path and time to change it at
-		inline TimedFileLogger() = delete;
+		inline DailyLogger() = delete;
 
-		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+		// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
-		inline TimedFileLogger(const char* filePath, const char* format = nullptr, bool autoFlush = true);
+		inline DailyLogger(const char* filePath, const char* format = nullptr, int hour = 0, int minutes = 0, int seconds = 0, bool autoFlush = true);
 
-		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+		// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
-		inline TimedFileLogger(const char* filePath, const std::string& format, bool autoFlush = true);
+		inline DailyLogger(const char* filePath, const std::string& format, int hour = 0, int minutes = 0, int seconds = 0, bool autoFlush = true);
 
-		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+		// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
-		inline TimedFileLogger(const std::string& filePath, const std::string& format = std::string(), bool autoFlush = true);
+		inline DailyLogger(const std::string& filePath, const std::string& format = std::string(), int hour = 0, int minutes = 0, int seconds = 0, bool autoFlush = true);
 
-		// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+		// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 		// By default there is no formatting and auto flush is set to true
-		inline TimedFileLogger(const std::string&& filePath, const std::string&& format = std::string(), bool autoFlush = true);
+		inline DailyLogger(const std::string&& filePath, const std::string&& format = std::string(), int hour = 0, int minutes = 0, int seconds = 0, bool autoFlush = true);
 
 		// Copy constructor
 
-		inline TimedFileLogger(const TimedFileLogger& other) = delete;
+		inline DailyLogger(const DailyLogger& other) = delete;
 
 		// Move constructor
 
-		inline TimedFileLogger(TimedFileLogger&& other) = delete;
+		inline DailyLogger(DailyLogger&& other) = delete;
 
 		// Destructor
 
 		// Flush and close stream if open
-		inline ~TimedFileLogger() override;
+		inline ~DailyLogger() override;
 
 		//
 		// Overloaded operators
 		//
 
 		// Assignment operator (deleted since having two streams for the same file causes certain output not to be writen).
-		inline TimedFileLogger& operator=(const TimedFileLogger& other) = delete;
+		inline DailyLogger& operator=(const DailyLogger& other) = delete;
 
 		//
 		// Public methods
 		//
+
+		// Flush file stream
+		inline virtual void Flush() noexcept override;
 
 		// Clear log file
 		inline virtual void ClearLogs() noexcept override;
@@ -1622,58 +1672,202 @@ namespace sblogger
 	// Constructors and destructors
 	//
 
-	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+	// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
-	inline TimedFileLogger::TimedFileLogger(const char* filePath, const char* format, bool autoFlush)
-		: FileLogger(filePath, format, autoFlush)
+	inline DailyLogger::DailyLogger(const char* filePath, const char* format, int hour, int minutes, int seconds, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush), m_FileNameFormat(filePath), m_Stop(false)
 	{
+		if (hour < 0 || hour > 23)			throw TimeRangeException();
+		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
+		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		auto newTime = *std::localtime(&tt);
+		newTime.tm_sec = m_Seconds;
+		newTime.tm_min = m_Minutes;
+		newTime.tm_hour = m_Hours;
+		newTime.tm_mday++;
+		tt = std::mktime(&newTime);
+		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
-	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+	// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
-	inline TimedFileLogger::TimedFileLogger(const char* filePath, const std::string& format, bool autoFlush)
-		: FileLogger(filePath, format, autoFlush)
+	inline DailyLogger::DailyLogger(const char* filePath, const std::string& format, int hour, int minutes, int seconds, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush), m_FileNameFormat(filePath), m_Stop(false)
 	{
+		if (hour < 0 || hour > 23)			throw TimeRangeException();
+		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
+		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		auto newTime = *std::localtime(&tt);
+		newTime.tm_sec = m_Seconds;
+		newTime.tm_min = m_Minutes;
+		newTime.tm_hour = m_Hours;
+		newTime.tm_mday++;
+		tt = std::mktime(&newTime);
+		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
-	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+	// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
-	inline TimedFileLogger::TimedFileLogger(const std::string& filePath, const std::string& format, bool autoFlush)
-		: FileLogger(filePath, format, autoFlush)
+	inline DailyLogger::DailyLogger(const std::string& filePath, const std::string& format, int hour, int minutes, int seconds, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush), m_FileNameFormat(filePath), m_Stop(false)
 	{
+		if (hour < 0 || hour > 23)			throw TimeRangeException();
+		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
+		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		auto newTime = *std::localtime(&tt);
+		newTime.tm_sec = m_Seconds;
+		newTime.tm_min = m_Minutes;
+		newTime.tm_hour = m_Hours;
+		newTime.tm_mday++;
+		tt = std::mktime(&newTime);
+		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
-	// Creates an instance of TimedFileLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
+	// Creates an instance of DailyLogger which outputs to a file stream given by the "filePath" parameter, which will be recreated at the specified interval
 	// By default there is no formatting and auto flush is set to true
-	inline TimedFileLogger::TimedFileLogger(const std::string&& filePath, const std::string&& format, bool autoFlush)
-		: FileLogger(filePath, format, autoFlush)
+	inline DailyLogger::DailyLogger(const std::string&& filePath, const std::string&& format, int hour, int minutes, int seconds, bool autoFlush)
+		: FileLogger(filePath, format, autoFlush), m_FileNameFormat(filePath), m_Stop(false)
 	{
+		if (hour < 0 || hour > 23)			throw TimeRangeException();
+		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
+		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		auto newTime = *std::localtime(&tt);
+		newTime.tm_sec = m_Seconds;
+		newTime.tm_min = m_Minutes;
+		newTime.tm_hour = m_Hours;
+		newTime.tm_mday++;
+		tt = std::mktime(&newTime);
+		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
 	// Destructor
 
 	// Flush and close stream if open
-	inline TimedFileLogger::~TimedFileLogger()
+	inline DailyLogger::~DailyLogger()
 	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+		m_Stop = true;
+		lock.unlock();
+
 		if (m_FileChangeThread.joinable())
 			m_FileChangeThread.join();
 
-		if(m_FileStream.is_open())
+		lock.lock();
+		if (m_FileStream.is_open())
+		{
+			m_FileStream.flush();
 			m_FileStream.close();
+		}
+	}
+
+	//
+	// Protected methods
+	//
+
+	// Writes string to file stream and flush if auto flush is set
+	inline void DailyLogger::writeToStream(const std::string&& str)
+	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+
+		if (!m_FileStream.is_open())
+#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
+			std::cerr << "The file stream " + m_FilePath + " is not opened.";
+#else
+			std::cerr << "The file stream " + m_FilePath.string() + " is not opened.";
+#endif
+		else
+		{
+			m_FileStream << str;
+			if (m_AutoFlush)
+				m_FileStream.flush();
+		}
+	}
+
+	// Check if it is time to change the current file (closing it) and open the new one, according to the time provided
+	inline void DailyLogger::changeFile()
+	{
+		auto delay = std::chrono::minutes(1);
+		auto now = std::chrono::system_clock::now() + delay;
+
+		while (!m_Stop)
+		{
+			while (now < m_NextChangeTime)
+			{
+				std::this_thread::sleep_for(delay);
+				now = std::chrono::system_clock::now() + delay;
+			}
+
+			if (!m_Stop)
+			{
+				auto tt = std::chrono::system_clock::to_time_t(m_NextChangeTime);
+				auto newTime = *std::localtime(&tt);
+				newTime.tm_sec = m_Seconds;
+				newTime.tm_min = m_Minutes;
+				newTime.tm_hour = m_Hours;
+				newTime.tm_mday++;
+				tt = std::mktime(&newTime);
+
+				m_NextChangeTime = std::chrono::system_clock::from_time_t(tt);
+
+				std::unique_lock<std::mutex> lock(m_Mutex);
+				if (m_FileStream.is_open())
+				{
+					m_FileStream.flush();
+					m_FileStream.close();
+
+					std::string formattedFilePath(m_FileNameFormat);
+					addPadding(formattedFilePath);
+					addColours(formattedFilePath);
+					replacePredefinedPlaceholders(formattedFilePath);
+					replaceCurrentLevel(formattedFilePath);
+					replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
+					replaceDateFormats(formattedFilePath);
+					m_FileStream = std::fstream((m_FilePath = formattedFilePath), std::ios::out | std::ios::trunc);
+				}
+			}
+		}
 	}
 
 	//
 	// Public methods
 	//
 
-	// Clear log file
-	inline void TimedFileLogger::ClearLogs() noexcept
+	// Flush file stream
+	inline void DailyLogger::Flush() noexcept
 	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
+		if (m_FileStream.is_open())
+			m_FileStream.flush();
+	}
+
+	// Clear log file
+	inline void DailyLogger::ClearLogs() noexcept
+	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+
+		if (m_FileStream.is_open())
+		{
+#ifdef SBLOGGER_LEGACY
+			m_FileStream.close();
+			m_FileStream = std::fstream(m_FilePath, std::ofstream::out | std::ofstream::trunc);
+#else
+			std::filesystem::resize_file(m_FilePath, 0);
+			m_FileStream.seekp(0);
+#endif
+		}
 	}
 }
 
@@ -1689,31 +1883,31 @@ namespace sblogger
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_DEBUG
-		#define SBLOGGER_DEBUG(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_DEBUG(x, ...)		x.Debug(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_DEBUG(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_INFO
-		#define SBLOGGER_INFO(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_INFO(x, ...)		x.Info(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_INFO(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_WARN
-		#define SBLOGGER_WARN(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_WARN(x, ...)		x.Warn(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_WARN(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_ERROR
-		#define SBLOGGER_ERROR(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_ERROR(x, ...)		x.Error(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_ERROR(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_CRITICAL
-		#define SBLOGGER_CRITICAL(x, ...)	x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_CRITICAL(x, ...)	x.Critical(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_CRITICAL(x, ...)
 	#endif
