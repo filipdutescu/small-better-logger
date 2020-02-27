@@ -1681,6 +1681,8 @@ namespace sblogger
 		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
 		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+		// Set the date using time_t and mktime (pre C++20)
+#ifdef SBLOGGER_OLD_DATES
 		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 		auto newTime = *std::localtime(&tt);
 		newTime.tm_sec = m_Seconds;
@@ -1688,7 +1690,10 @@ namespace sblogger
 		newTime.tm_hour = m_Hours;
 		newTime.tm_mday++;
 		tt = std::mktime(&newTime);
-		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_NextChangeTime = std::chrono::system_clock::from_time_t(tt);
+#else
+// Set the date using C++20 (or later) methods
+#endif
 		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
@@ -1701,6 +1706,8 @@ namespace sblogger
 		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
 		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+// Set the date using time_t and mktime (pre C++20)
+#ifdef SBLOGGER_OLD_DATES
 		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 		auto newTime = *std::localtime(&tt);
 		newTime.tm_sec = m_Seconds;
@@ -1708,7 +1715,10 @@ namespace sblogger
 		newTime.tm_hour = m_Hours;
 		newTime.tm_mday++;
 		tt = std::mktime(&newTime);
-		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_NextChangeTime = std::chrono::system_clock::from_time_t(tt);
+#else
+// Set the date using C++20 (or later) methods
+#endif
 		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
@@ -1721,6 +1731,8 @@ namespace sblogger
 		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
 		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+// Set the date using time_t and mktime (pre C++20)
+#ifdef SBLOGGER_OLD_DATES
 		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 		auto newTime = *std::localtime(&tt);
 		newTime.tm_sec = m_Seconds;
@@ -1728,7 +1740,10 @@ namespace sblogger
 		newTime.tm_hour = m_Hours;
 		newTime.tm_mday++;
 		tt = std::mktime(&newTime);
-		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_NextChangeTime = std::chrono::system_clock::from_time_t(tt);
+#else
+// Set the date using C++20 (or later) methods
+#endif
 		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
@@ -1741,6 +1756,8 @@ namespace sblogger
 		if (minutes < 0 || minutes > 59)	throw TimeRangeException();
 		if (seconds < 0 || seconds > 59)	throw TimeRangeException();
 
+// Set the date using time_t and mktime (pre C++20)
+#ifdef SBLOGGER_OLD_DATES
 		auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 		auto newTime = *std::localtime(&tt);
 		newTime.tm_sec = m_Seconds;
@@ -1748,7 +1765,10 @@ namespace sblogger
 		newTime.tm_hour = m_Hours;
 		newTime.tm_mday++;
 		tt = std::mktime(&newTime);
-		m_NextChangeTime = std::chrono::ceil<std::chrono::seconds>(std::chrono::system_clock::from_time_t(tt));
+		m_NextChangeTime = std::chrono::system_clock::from_time_t(tt);
+#else
+// Set the date using C++20 (or later) methods
+#endif
 		m_FileChangeThread = std::thread(&DailyLogger::changeFile, this);
 	}
 
@@ -1811,6 +1831,8 @@ namespace sblogger
 
 			if (!m_Stop)
 			{
+// Set the date using time_t and mktime (pre C++20)
+#ifdef SBLOGGER_OLD_DATES
 				auto tt = std::chrono::system_clock::to_time_t(m_NextChangeTime);
 				auto newTime = *std::localtime(&tt);
 				newTime.tm_sec = m_Seconds;
@@ -1818,8 +1840,10 @@ namespace sblogger
 				newTime.tm_hour = m_Hours;
 				newTime.tm_mday++;
 				tt = std::mktime(&newTime);
-
 				m_NextChangeTime = std::chrono::system_clock::from_time_t(tt);
+#else
+// Set the date using C++20 (or later) methods
+#endif
 
 				std::unique_lock<std::mutex> lock(m_Mutex);
 				if (m_FileStream.is_open())
