@@ -41,7 +41,7 @@ SOFTWARE.
 //
 // Either uncomment or define this macro, should your environment support colours and you wish to use them
 //
-#define SBLOGGER_COLORS
+//#define SBLOGGER_COLORS
 
 #if __cplusplus != 199711L
 	#if __cplusplus < 201703L
@@ -1901,41 +1901,47 @@ namespace sblogger
 
 #if defined SBLOGGER_LOG_LEVEL && SBLOGGER_LOG_LEVEL < SBLOGGER_LEVEL_OFF
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_TRACE
-		#define SBLOGGER_TRACE(x, ...)		x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_WRITE(x, ...)			x.Write(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_WRITELINE(x, ...)		x.WriteLine(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_TRACE(x, ...)			x.Trace(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
+		#define SBLOGGER_WRITE(x, ...)
+		#define SBLOGGER_WRITELINE(x, ...)
 		#define SBLOGGER_TRACE(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_DEBUG
-		#define SBLOGGER_DEBUG(x, ...)		x.Debug(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_DEBUG(x, ...)			x.Debug(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_DEBUG(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_INFO
-		#define SBLOGGER_INFO(x, ...)		x.Info(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_INFO(x, ...)			x.Info(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_INFO(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_WARN
-		#define SBLOGGER_WARN(x, ...)		x.Warn(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_WARN(x, ...)			x.Warn(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_WARN(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_ERROR
-		#define SBLOGGER_ERROR(x, ...)		x.Error(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_ERROR(x, ...)			x.Error(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_ERROR(x, ...)
 	#endif
 
 	#if SBLOGGER_LOG_LEVEL <= SBLOGGER_LEVEL_CRITICAL
-		#define SBLOGGER_CRITICAL(x, ...)	x.Critical(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
+		#define SBLOGGER_CRITICAL(x, ...)		x.Critical(__VA_ARGS__, "__MACROS__", __FILE__, __LINE__, __func__)
 	#else
 		#define SBLOGGER_CRITICAL(x, ...)
 	#endif
 #else
+	#define SBLOGGER_WRITE(x, ...)
+	#define SBLOGGER_WRITELINE(x, ...)
 	#define SBLOGGER_TRACE(x, ...)
 	#define SBLOGGER_DEBUG(x, ...)
 	#define SBLOGGER_INFO(x, ...)

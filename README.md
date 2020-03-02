@@ -16,7 +16,7 @@ All you need to do if you wish to use **SBLogger** (in a C++ project) is to clon
 ...
 ````
 
-### Including as Library (WIP)
+***
 
 ### Setting Up
 
@@ -32,6 +32,8 @@ Please define them either before including **SBLogger** or in the first line of 
 #define SBLOGGER_OLD_DATES  // Pre C++20 Compiler
 ````
 > ***Note:*** *For **MSVC** you can fix this problem, by setting up the **`/Zc:__cplusplus`** compiler option. If you do not know how to do this, please refer to the following [Microsoft guide](https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019#to-set-this-compiler-option-in-visual-studio) for setting it up.*
+
+***
 
 #### Cross-Platform Info
 In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
@@ -52,14 +54,18 @@ There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging
 
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
-### Logger Methods
+### Logging messages
+
+#### Logger Methods
 All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
   * ```void Write(...)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
   * ```void WriteLine([...])``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * ```void Trace/Debug/Info/Warn/Error/Critical(...)``` - same as the ```Write(...)``` method previously mentioned, with the addition that output from the call of one of those methods will only appear if the log level (at the time of the call) is at most the same as the method's (i.e. a message written with ```Info(...)``` will only appear if the log level is set to **Info**)
   * ```int Indent()```/```int Dedent()``` - increase/decrease indent by 1
   * ```void Flush()``` - flushes the stream
 
-> ***Note:*** *Specific logging methods, which make usage of different logging levels also exist (ex: ```sblogger::Logger::Trace```, ```sblogger::Logger::Info```, ```sblogger::Logger::Error``` etc.). More information concerning them can be found either in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP) or in the examples ([Usage Examples](README.md#Usage-Examples) or the [`Source.cpp`](SmallBetterLogger/Source.cpp) file).*
+> ***Note:*** *```sblogger::Write``` and ```sblogger::WriteLine``` methods use a logging level of **Trace**.*
+> ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Logging Levels](README.md#Logging-Levels) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP).*
 
 **```sblogger::StreamLogger```** constains an additional method:
   * ```void SetStreamType(STREAM_TYPE streamType)``` - change the current stream type to a different ```STREAM_TYPE```
@@ -67,7 +73,38 @@ All loggers have the following general methods for printing and formatting messa
 **```sblogger::FileLogger```** also contains an additional method:
   * ```void ClearLogs()``` - removes all content from the log file
 
-For more information regarding available methods, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.
+***
+
+#### Logger Predefined Macros
+For all the aforementioned methods of logging there are also compile-time ways of outputting messages to streams. There are predefined macros for each method, with the exception of ```sblogger::Indent```, ```sblogger::Dedent``` and ```sblogger::Flush```.
+  * ```SBLOGGER_WRITE(x, ...)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
+  * ```SBLOGGER_WRITELINE(x, ...)``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * ```void SBLOGGER_TRACE/SBLOGGER_DEBUG/SBLOGGER_INFO/SBLOGGER_WARN/SBLOGGER_ERROR/SBLOGGER_CRITICAL(x, ...)``` - same as the ```SBLOGGER_WRITE(x, ...)``` method previously mentioned, with the addition that output from the call of one of those methods will only appear if the log level (at the time of the call) is at most the same as the method's (i.e. a message written with ```SBLOGGER_INFO(x, ...)``` will only appear if the log level is set to **Info**)
+
+> ***Note:*** *The ```x``` found in the macro parameters denotes the message that would be passed in the method calls, shown previously. In the case of the predefined macros it is mandatory to have it.*
+> ***Note:*** *The predefined macros also expose placeholders for the ***file***, ***line*** and ***function*** information. Please check the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)* for more info related to placeholders.*
+
+Another important aspect concerning this way of logging is that **those macros are available based on whether or not the ```SBLOGGER_LOG_LEVEL``` macro is defined** (which is defined and initialized by default with the ```SBLOGGER_LEVEL_TRACE``` value).
+
+> ***Note:*** *For more information regarding available methods and macros, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.*
+
+***
+
+#### Placeholders
+**SBLogger** provides a good amount of placeholders at your disposal, in order to allow easier creation and formatting of logs. They vary from date related placeholders (such as for the current date or time) to colour placeholders (which allow you to add colours for ```sblogger::StreamLogger``` generated output). Below you can find a short summary of the most relevant of those placeholders, with more detail to be found in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*:
+
+| Placeholder | Meaning                                                              | Other                                                        |
+|-------------|----------------------------------------------------------------------|--------------------------------------------------------------|
+| **{i}**     | Replace with the value of the **i**th parameter from the method call | N/A                                                          |
+| **%[^]tr**  | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+| **%[^]dbg** | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+| **%[^]inf** | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+| **%[^]wn**  | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+| **%[^]er**  | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+| **%[^]crt** | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+| **%[^]lvl** | Replace with the string ```"Trace"```                                | Using ```^``` (```%^tr```) will use the string ```"TRACE"``` |
+
+***
 
 ### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:
