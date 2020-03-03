@@ -65,6 +65,7 @@ All loggers have the following general methods for printing and formatting messa
   * ```void Flush()``` - flushes the stream
 
 > ***Note:*** *```sblogger::Write``` and ```sblogger::WriteLine``` methods use a logging level of **Trace**.*
+
 > ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Logging Levels](README.md#Logging-Levels) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP).*
 
 **```sblogger::StreamLogger```** contains an additional method:
@@ -82,6 +83,7 @@ For all the aforementioned methods of logging there are also compile-time ways o
   * ```void SBLOGGER_TRACE/SBLOGGER_DEBUG/SBLOGGER_INFO/SBLOGGER_WARN/SBLOGGER_ERROR/SBLOGGER_CRITICAL(x, ...)``` - same as the ```SBLOGGER_WRITE(x, ...)``` method previously mentioned, with the addition that output from the call of one of those methods will only appear if the log level (at the time of the call) is at most the same as the method's (i.e. a message written with ```SBLOGGER_INFO(x, ...)``` will only appear if the log level is set to **Info**)
 
 > ***Note:*** *The ```x``` found in the macro parameters denotes the message that would be passed in the method calls, shown previously. In the case of the predefined macros it is mandatory to have it.*
+
 > ***Note:*** *The predefined macros also expose placeholders for the ***file***, ***line*** and ***function*** information. Please check the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)* for more info related to placeholders.*
 
 Another important aspect concerning this way of logging is that **those macros are available based on whether or not the ```SBLOGGER_LOG_LEVEL``` macro is defined** (which is defined and initialized by default with the ```SBLOGGER_LEVEL_TRACE``` value).
