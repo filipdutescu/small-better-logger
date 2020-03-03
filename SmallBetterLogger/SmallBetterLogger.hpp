@@ -34,7 +34,7 @@ SOFTWARE.
 #define SBLOGGER_LEVEL_CRITICAL  5
 #define SBLOGGER_LEVEL_OFF       6
 //
-// Define your prefered active level (e.g. using the macro bellow), or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
+// Define your preferred active level (e.g. using the macro bellow), or use the static method Logger::SetLoggingLevel(const LOG_LEVELS& level)
 //
 //#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE
 
@@ -1366,7 +1366,7 @@ namespace sblogger
 		// Overloaded operators
 		//
 
-		// Assignment operator (deleted since having two streams for the same file causes certain output not to be writen).
+		// Assignment operator (deleted since having two streams for the same file causes certain output not to be written).
 		inline FileLogger& operator=(const FileLogger& other) = delete;
 
 		//
@@ -1654,7 +1654,7 @@ namespace sblogger
 		// Overloaded operators
 		//
 
-		// Assignment operator (deleted since having two streams for the same file causes certain output not to be writen).
+		// Assignment operator (deleted since having two streams for the same file causes certain output not to be written).
 		inline DailyLogger& operator=(const DailyLogger& other) = delete;
 
 		//
