@@ -122,14 +122,40 @@ namespace sblogger
 	// Stream Logger
 	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	class StreamLogger;
-	// Used to log messages to a non-file stream (ex.: STDOUT, STDERR, STDLOG)
 	using stream_logger = StreamLogger;
 
 	// File Logger
 	// Used to log messages to a file stream
 	class FileLogger;
-	// Used to log messages to a file stream
 	using file_logger = FileLogger;
+
+	//
+	// Custom exceptions' definition
+	//
+
+	// Base exception
+	class SBLoggerException;
+	using sblogger_exception = SBLoggerException;
+
+	// NullOrEmptyPathException
+	// Thrown when the given file path is null or empty
+	class NullOrEmptyPathException;
+	using null_or_empty_path_exception = NullOrEmptyPathException;
+	
+	// NullOrWhitespaceNameException
+	// Thrown when the given file name is null or whitespace
+	class NullOrWhitespaceNameException;
+	using null_or_whitespace_name_exception = NullOrWhitespaceNameException;
+	
+	// InvalidFilePathException
+	// Thrown when the specified file could not be opened
+	class InvalidFilePathException;
+	using invalid_file_path_exception = InvalidFilePathException;
+	
+	// TimeRangeException  
+	// Thrown when a time related value is out of bounds (e.g.: hours not in [0, 23])
+	class TimeRangeException;
+	using time_range_exception = TimeRangeException;
 
 	//
 	// Enum definitions
@@ -248,7 +274,7 @@ namespace sblogger
 	// InvalidFilePathException
 	//
 
-	// Thrown when the specified file could not be openned
+	// Thrown when the specified file could not be opened
 	class InvalidFilePathException : public SBLoggerException
 	{
 	public:

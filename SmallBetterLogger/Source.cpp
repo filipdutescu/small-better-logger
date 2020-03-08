@@ -43,6 +43,7 @@ int main()
 	// ======================================= TODELETE =======================================
 	sblogger::StreamLogger testingLogger("%{yellow}[%F %T] %^{yellow}%msg%{yellow} [%^lvl]%{reset}\n");
 
+	sblogger::StreamLogger::SetLoggingLevel(sblogger::LOG_LEVELS::WARN);
 	testingLogger.Error("Test");
 	testingLogger.WriteLine("%2.3Test, test");
 	testingLogger.WriteLine("%.5^er");

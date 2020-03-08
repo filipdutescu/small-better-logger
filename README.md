@@ -42,20 +42,75 @@ In order for **SBLogger** to work properly outside of **MS Windows**, you should
 
 > ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
 
-#### Default Log Level (WIP)
+#### Default Log Level
+During compile time, it is possible to set a default log level for all of the loggers, by defining the **```SBLOGGER_LOG_LEVEL```** and giving it a value ranging between 0 and 6 (the meaning will be explained a bit further in this section). **By default**, the loggers are all given the level of **Trace**. All loggers contain the static method ```void sblogger::SetLoggingLevel(const sblogger::LOG_LEVELS& level)```, which can be set to update the logging level at runtime for all loggers (more about ```LOG_LEVELS``` further in this section).
+
+To set the desired log level at compile time, either uncomment the line in the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file which defines the previously mentioned macro as ```SBLOGGER_LEVEL_TRACE```, or defined your own before including **SBLogger**:
+
+````cpp
+#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE // Example found in "SmallBetterLogger.hpp"
+````
+Or using a number rather than another macro:
+````cpp
+#define SBLOGGER_LOG_LEVEL 0    // Equivalent to the example above
+````
+
+The values that ```SBLOGGER_LOG_LEVEL``` macro can take values from 0 to 6, each of them having the following meanings, as defined in the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file:
+
+````cpp
+// Log Levels macros to be used with "SBLOGGER_LOG_LEVEL" macro for defining a default level
+#define SBLOGGER_LEVEL_TRACE     0
+#define SBLOGGER_LEVEL_DEBUG     1
+#define SBLOGGER_LEVEL_INFO      2
+#define SBLOGGER_LEVEL_WARN      3
+#define SBLOGGER_LEVEL_ERROR     4
+#define SBLOGGER_LEVEL_CRITICAL  5
+#define SBLOGGER_LEVEL_OFF       6
+````
+> ***Note:*** *Should any other value be provided - concretely, any value lower than 0 or higher than 6, ***SBLogger*** will assume a default level of **```SBLOGGER_LEVEL_TRACE```**.*
+
+To change the level of all logs (**for all loggers**, concretely: ```sblogger::StreamLogger```, ```sblogger::FileLogger``` or ```sblogger::DailyLogger```) during runtime, one can use the ```void sblogger::SetLoggingLevel(const sblogger::LOG_LEVELS& level)``` static method, accessible from all of the loggers. It takes as its parameter a value of the ```sblogger::LOG_LEVEL``` enum, which can be one of the following:
+
+````cpp
+// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
+enum class LOG_LEVELS
+{ 
+  TRACE /*= 0*/, DEBUG /*= 1*/, INFO /*= 2*/, WARN /*= 3*/, ERROR /*= 4*/, CRITICAL /*= 5*/, OFF /*= 6*/ 
+};
+````
+
+As you can see, they mirror the previously defined log level macros. With this, one can now set the logging level during runtime, as follows:
+
+````cpp
+  ...
+	sblogger::Logger::SetLoggingLevel(sblogger::LOG_LEVELS::WARN);  // Example of setting the level to WARN at runtime
+  ...
+````
+
+The current logging level can also be found out at runtime, by using the ```const sblogger::LOG_LEVELS sblogger::GetLoggingLevel()``` static method, also found in all loggers:
+
+````cpp
+  ...
+	auto currentLevel = sblogger::Logger::GetLoggingLevel();  // Example of getting the current level
+  ...
+````
 
 ## Usage
-All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
+All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 3 types: 
   * **```sblogger::StreamLogger```** (which writes to the standard streams)
   * **```sblogger::FileLogger```** (which writes to a file) - which also has a specialized derivate,
     * **```sblogger::DailyLogger```** (which writes to a file that changes daily at the specified time) 
 
-There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. The library also defines its own custom errors ***(WIP)***.
+There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. The library also defines its own custom errors, which help identify issues a user might run into:
+  * ```sblogger::SBLoggerException``` - the default base error from **SBLogger**
+	* ```sblogger::NullOrEmptyPathException``` - thrown when the given file path is null or empty
+  * ```sblogger::NullOrWhitespaceNameException``` - thrown when the given file name is null or whitespace
+  * ```sblogger::InvalidFilePathException``` - thrown when the specified file could not be opened
+  * ```sblogger::TimeRangeException``` - thrown when a time related value is out of bounds (e.g.: hours not in [0, 23])
 
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
 ### Logging messages
-
 #### Logger Methods
 All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
   * ```void Write(...)``` - write the message ```const std::string& message``` after replacing all placeholders with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
