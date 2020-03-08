@@ -111,7 +111,7 @@ There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
 
 ### Logging messages
-#### Logger Methods
+### Logger Methods
 All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
   * ```void Write(...)``` - write the message ```const std::string& message``` after replacing all placeholders with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
   * ```void WriteLine([...])``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
@@ -131,7 +131,7 @@ All loggers have the following general methods for printing and formatting messa
 
 ***
 
-#### Logger Predefined Macros
+### Logger Predefined Macros
 For all the aforementioned methods of logging there are also compile-time ways of outputting messages to streams. There are predefined macros for each method, with the exception of ```sblogger::Indent```, ```sblogger::Dedent``` and ```sblogger::Flush```.
   * ```SBLOGGER_WRITE(x, ...)``` - write the message ```const std::string& message``` after replacing all placeholders with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
   * ```SBLOGGER_WRITELINE(x, ...)``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
@@ -147,7 +147,7 @@ Another important aspect concerning this way of logging is that **those macros a
 
 ***
 
-#### Placeholders
+### Placeholders
 **SBLogger** provides a good amount of placeholders at your disposal, in order to allow easier creation and formatting of logs. They vary from date related placeholders (such as for the current date or time) to colour placeholders (which allow you to add colours for ```sblogger::StreamLogger``` generated output). Below you can find a short summary of the most relevant of those placeholders, with more detail to be found in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*:
 
 | Placeholder     | Meaning                                                                      | Other                                                                                    |
