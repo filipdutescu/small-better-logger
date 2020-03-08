@@ -121,7 +121,7 @@ All loggers have the following general methods for printing and formatting messa
 
 > ***Note:*** *```sblogger::Write``` and ```sblogger::WriteLine``` methods use a logging level of **Trace**.*
 
-> ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Logging Levels](README.md#Logging-Levels) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP).*
+> ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Default Log Level](README.md#Default-Log-Level) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP).*
 
 **```sblogger::StreamLogger```** contains an additional method:
   * ```void SetStreamType(STREAM_TYPE streamType)``` - change the current stream type to a different ```STREAM_TYPE```
