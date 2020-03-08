@@ -103,7 +103,7 @@ All the code which is related to the **SBL** is located in the ```sblogger``` na
 
 There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. The library also defines its own custom errors, which help identify issues a user might run into:
   * ```sblogger::SBLoggerException``` - the default base error from **SBLogger**
-	* ```sblogger::NullOrEmptyPathException``` - thrown when the given file path is null or empty
+  * ```sblogger::NullOrEmptyPathException``` - thrown when the given file path is null or empty
   * ```sblogger::NullOrWhitespaceNameException``` - thrown when the given file name is null or whitespace
   * ```sblogger::InvalidFilePathException``` - thrown when the specified file could not be opened
   * ```sblogger::TimeRangeException``` - thrown when a time related value is out of bounds (e.g.: hours not in [0, 23])
