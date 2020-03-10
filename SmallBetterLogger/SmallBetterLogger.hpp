@@ -162,18 +162,18 @@ namespace sblogger
 	//
 
 	// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
-	enum class LOG_LEVELS
+	enum class LogLevel
 	{ 
 		TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF 
 	};
-	using log_levels = LOG_LEVELS;
+	using log_levels = LogLevel;
 
 	// Stream types to be used by a Logger instance
-	enum class STREAM_TYPE
+	enum class StreamType
 	{
 		STDOUT, STDERR, STDLOG
 	};
-	using stream_type = STREAM_TYPE;
+	using stream_type = StreamType;
 
 	//
 	// Custom exceptions
@@ -351,7 +351,7 @@ namespace sblogger
 		std::string m_Format;
 		bool m_AutoFlush;
 		size_t m_IndentCount;
-		static LOG_LEVELS s_CurrentLogLevel;
+		static LogLevel s_CurrentLogLevel;
 
 		//
 		// Protected constructors
@@ -414,10 +414,10 @@ namespace sblogger
 		//
 
 		// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc). 
-		static inline void SetLoggingLevel(const LOG_LEVELS& level) noexcept;
+		static inline void SetLoggingLevel(const LogLevel& level) noexcept;
 
 		// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
-		static inline const LOG_LEVELS GetLoggingLevel() noexcept;
+		static inline const LogLevel GetLoggingLevel() noexcept;
 
 		// Get the current log format
 		inline const std::string GetFormat() const noexcept;
@@ -439,7 +439,7 @@ namespace sblogger
 		//
 
 		// Writes to the stream the newline character, assuming a default log level of TRACE
-		inline void WriteLine(LOG_LEVELS logLevel = LOG_LEVELS::TRACE);
+		inline void WriteLine(LogLevel logLevel = LogLevel::TRACE);
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), assuming a default log level of TRACE
 		template<typename ...T>
@@ -463,19 +463,19 @@ namespace sblogger
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of "logLevel" importance
 		template<typename ...T>
-		inline void Write(LOG_LEVELS logLevel, const std::string& message, const T& ...t);
+		inline void Write(LogLevel logLevel, const std::string& message, const T& ...t);
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist), of "logLevel" importance
 		template<typename ...T>
-		inline void Write(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t);
+		inline void Write(LogLevel logLevel, const std::string&& message, const T&& ...t);
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, of "logLevel" importance
 		template<typename ...T>
-		inline void WriteLine(LOG_LEVELS logLevel, const std::string& message, const T& ...t);
+		inline void WriteLine(LogLevel logLevel, const std::string& message, const T& ...t);
 
 		// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, of "logLevel" importance
 		template<typename ...T>
-		inline void WriteLine(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t);
+		inline void WriteLine(LogLevel logLevel, const std::string&& message, const T&& ...t);
 
 		//
 		// Generic Methods: Write a TRACE level message to a stream
@@ -564,7 +564,7 @@ namespace sblogger
 #elif SBLOGGER_LOG_LEVEL == SBLOGGER_LEVEL_OFF
 	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::OFF;
 #else
-	LOG_LEVELS Logger::s_CurrentLogLevel = LOG_LEVELS::TRACE;
+	LogLevel Logger::s_CurrentLogLevel = LogLevel::TRACE;
 #endif
 
 	//
@@ -795,27 +795,27 @@ namespace sblogger
 		if (placeholderPosition != std::string::npos && (message[placeholderPosition - 1u] == '%' || message[placeholderPosition - 2u] == '%'))
 			switch (s_CurrentLogLevel)
 			{
-			case LOG_LEVELS::TRACE:
+			case LogLevel::TRACE:
 				message[placeholderPosition - 1u] == '^' ?
 					message.replace(placeholderPosition - 2u, 5u, "TRACE") : message.replace(placeholderPosition - 2u, 4u, "Trace");
 				break;
-			case LOG_LEVELS::DEBUG:
+			case LogLevel::DEBUG:
 				message[placeholderPosition - 1u] == '^' ?
 					message.replace(placeholderPosition - 2u, 5u, "DEBUG") : message.replace(placeholderPosition - 2u, 4u, "Debug");
 				break;
-			case LOG_LEVELS::INFO:
+			case LogLevel::INFO:
 				message[placeholderPosition - 1u] == '^' ?
 					message.replace(placeholderPosition - 2u, 5u, "INFO") : message.replace(placeholderPosition - 2u, 4u, "Info");
 				break;
-			case LOG_LEVELS::WARN:
+			case LogLevel::WARN:
 				message[placeholderPosition - 1u] == '^' ?
 					message.replace(placeholderPosition - 2u, 5u, "WARN") : message.replace(placeholderPosition - 2u, 4u, "Warn");
 				break;
-			case LOG_LEVELS::ERROR:
+			case LogLevel::ERROR:
 				message[placeholderPosition - 1u] == '^' ?
 					message.replace(placeholderPosition - 2u, 5u, "ERROR") : message.replace(placeholderPosition - 2u, 4u, "Error");
 				break;
-			case LOG_LEVELS::CRITICAL:
+			case LogLevel::CRITICAL:
 				message[placeholderPosition - 1u] == '^' ?
 					message.replace(placeholderPosition - 2u, 5u, "CRITICAL") : message.replace(placeholderPosition - 2u, 4u, "Critical");
 				break;
@@ -887,13 +887,13 @@ namespace sblogger
 	}
 
 	// Set the current logging level to one of the "LOG_LEVELS" options (ex.: TRACE, DEBUG, INFO etc).
-	inline void Logger::SetLoggingLevel(const LOG_LEVELS& level) noexcept
+	inline void Logger::SetLoggingLevel(const LogLevel& level) noexcept
 	{
 		s_CurrentLogLevel = level;
 	}
 
 	// Get the current logging level (one of the "LOG_LEVELS" options, ex.: TRACE, DEBUG, INFO etc). 
-	inline const LOG_LEVELS Logger::GetLoggingLevel() noexcept
+	inline const LogLevel Logger::GetLoggingLevel() noexcept
 	{
 		return s_CurrentLogLevel;
 	}
@@ -911,7 +911,7 @@ namespace sblogger
 	}
 
 	// Writes to the stream the newline character with a log level of TRACE
-	inline void Logger::WriteLine(LOG_LEVELS logLevel)
+	inline void Logger::WriteLine(LogLevel logLevel)
 	{
 		if(s_CurrentLogLevel <= logLevel)
 			writeToStream(SBLOGGER_NEWLINE);
@@ -925,7 +925,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Write(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+		if (s_CurrentLogLevel <= LogLevel::TRACE)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -933,7 +933,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Write(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+		if (s_CurrentLogLevel <= LogLevel::TRACE)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -941,7 +941,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::WriteLine(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+		if (s_CurrentLogLevel <= LogLevel::TRACE)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
 	}
 
@@ -949,7 +949,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::WriteLine(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+		if (s_CurrentLogLevel <= LogLevel::TRACE)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
 	}
 
@@ -959,7 +959,7 @@ namespace sblogger
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), with "logLevel" importance
 	template<typename ...T>
-	inline void Logger::Write(LOG_LEVELS logLevel, const std::string& message, const T& ...t)
+	inline void Logger::Write(LogLevel logLevel, const std::string& message, const T& ...t)
 	{
 		if (s_CurrentLogLevel <= logLevel)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
@@ -967,7 +967,7 @@ namespace sblogger
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist), with "logLevel" importance
 	template<typename ...T>
-	inline void Logger::Write(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t)
+	inline void Logger::Write(LogLevel logLevel, const std::string&& message, const T&& ...t)
 	{
 		if (s_CurrentLogLevel <= logLevel)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
@@ -975,7 +975,7 @@ namespace sblogger
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, with "logLevel" importance
 	template<typename ...T>
-	inline void Logger::WriteLine(LOG_LEVELS logLevel, const std::string& message, const T& ...t)
+	inline void Logger::WriteLine(LogLevel logLevel, const std::string& message, const T& ...t)
 	{
 		if (s_CurrentLogLevel <= logLevel)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
@@ -983,7 +983,7 @@ namespace sblogger
 
 	// Writes to the stream a message and inserts values into placeholders (should they exist) and finishes with the newline character, with "logLevel" importance
 	template<typename ...T>
-	inline void Logger::WriteLine(LOG_LEVELS logLevel, const std::string&& message, const T&& ...t)
+	inline void Logger::WriteLine(LogLevel logLevel, const std::string&& message, const T&& ...t)
 	{
 		if (s_CurrentLogLevel <= logLevel)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }) + SBLOGGER_NEWLINE);
@@ -997,7 +997,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Trace(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+		if (s_CurrentLogLevel <= LogLevel::TRACE)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1005,7 +1005,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Trace(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::TRACE)
+		if (s_CurrentLogLevel <= LogLevel::TRACE)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1017,7 +1017,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Debug(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::DEBUG)
+		if (s_CurrentLogLevel <= LogLevel::DEBUG)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1025,7 +1025,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Debug(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::DEBUG)
+		if (s_CurrentLogLevel <= LogLevel::DEBUG)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1037,7 +1037,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Info(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::INFO)
+		if (s_CurrentLogLevel <= LogLevel::INFO)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1045,7 +1045,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Info(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::INFO)
+		if (s_CurrentLogLevel <= LogLevel::INFO)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1057,7 +1057,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Warn(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::WARN)
+		if (s_CurrentLogLevel <= LogLevel::WARN)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1065,7 +1065,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Warn(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::WARN)
+		if (s_CurrentLogLevel <= LogLevel::WARN)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1077,7 +1077,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Error(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::ERROR)
+		if (s_CurrentLogLevel <= LogLevel::ERROR)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1085,7 +1085,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Error(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::ERROR)
+		if (s_CurrentLogLevel <= LogLevel::ERROR)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1097,7 +1097,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Critical(const std::string& message, const T& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::CRITICAL)
+		if (s_CurrentLogLevel <= LogLevel::CRITICAL)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1105,7 +1105,7 @@ namespace sblogger
 	template<typename ...T>
 	inline void Logger::Critical(const std::string&& message, const T&& ...t)
 	{
-		if (s_CurrentLogLevel <= LOG_LEVELS::CRITICAL)
+		if (s_CurrentLogLevel <= LogLevel::CRITICAL)
 			writeToStream(replacePlaceholders(message, std::vector<std::string>{ stringConvert(t)... }));
 	}
 
@@ -1121,7 +1121,7 @@ namespace sblogger
 		// Protected members
 		//
 
-		STREAM_TYPE m_StreamType;
+		StreamType m_StreamType;
 
 		//
 		// Protected methods
@@ -1142,7 +1142,7 @@ namespace sblogger
 
 		// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
 		// By default uses STREAM_TYPE::STDOUT and no format or auto flush
-		inline StreamLogger(const STREAM_TYPE& type = STREAM_TYPE::STDOUT, const std::string& format = std::string(), bool autoFlush = false);
+		inline StreamLogger(const StreamType& type = StreamType::STDOUT, const std::string& format = std::string(), bool autoFlush = false);
 
 		// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
 		inline StreamLogger(const std::string& format, bool autoFlush = false);
@@ -1183,7 +1183,7 @@ namespace sblogger
 		virtual inline void Flush() noexcept override;
 
 		// Change the logger's stream type (to a different "STREAM_TYPE")
-		inline void SetStreamType(STREAM_TYPE streamType);
+		inline void SetStreamType(StreamType streamType);
 	};
 
 	//
@@ -1192,23 +1192,23 @@ namespace sblogger
 
 	// Creates an instance of Logger which outputs to a stream chosen from a STREAM_TYPE
 	// By default uses STREAM_TYPE::STDOUT and no format or auto flush
-	inline StreamLogger::StreamLogger(const STREAM_TYPE& type, const std::string& format, bool autoFlush)
+	inline StreamLogger::StreamLogger(const StreamType& type, const std::string& format, bool autoFlush)
 		: Logger(format, autoFlush), m_StreamType(type)
 	{ }
 
 	// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
 	inline StreamLogger::StreamLogger(const std::string& format, bool autoFlush)
-		: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+		: Logger(format, autoFlush), m_StreamType(StreamType::STDOUT)
 	{ }
 
 	// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
 	inline StreamLogger::StreamLogger(const char* format, bool autoFlush)
-		: Logger(format, autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+		: Logger(format, autoFlush), m_StreamType(StreamType::STDOUT)
 	{ }
 
 	// Creates an instance of Logger which outputs to STDOUT. Formats logs and auto flushes based on the parameter "autoFlush"
 	inline StreamLogger::StreamLogger(bool autoFlush) noexcept
-		: Logger(std::string(), autoFlush), m_StreamType(STREAM_TYPE::STDOUT)
+		: Logger(std::string(), autoFlush), m_StreamType(StreamType::STDOUT)
 	{ }
 
 	// Copy constructor
@@ -1232,9 +1232,9 @@ namespace sblogger
 	{
 		switch (m_StreamType)
 		{
-		case STREAM_TYPE::STDERR:   std::cerr.flush();       break;
-		case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
-		case STREAM_TYPE::STDOUT:   std::cout.flush();       break;
+		case StreamType::STDERR:   std::cerr.flush();       break;
+		case StreamType::STDLOG:   std::clog.flush();       break;
+		case StreamType::STDOUT:   std::cout.flush();       break;
 		}
 	}
 
@@ -1280,8 +1280,8 @@ namespace sblogger
 	{
 		switch (m_StreamType)
 		{
-		case STREAM_TYPE::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
-		case STREAM_TYPE::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
+		case StreamType::STDERR:   std::cerr << str;       if (m_AutoFlush) std::cerr.flush();       break;
+		case StreamType::STDLOG:   std::clog << str;       if (m_AutoFlush) std::clog.flush();       break;
 		default:                    std::cout << str;       if (m_AutoFlush) std::cout.flush();       break;
 		}
 	}
@@ -1313,14 +1313,14 @@ namespace sblogger
 	{
 		switch (m_StreamType)
 		{
-		case STREAM_TYPE::STDERR:   std::cerr.flush();       break;
-		case STREAM_TYPE::STDLOG:   std::clog.flush();       break;
+		case StreamType::STDERR:   std::cerr.flush();       break;
+		case StreamType::STDLOG:   std::clog.flush();       break;
 		default:                    std::cout.flush();       break;
 		}
 	}
 
 	// Change the logger's stream type (to a different "STREAM_TYPE")
-	inline void StreamLogger::SetStreamType(STREAM_TYPE streamType)
+	inline void StreamLogger::SetStreamType(StreamType streamType)
 	{
 		m_StreamType = streamType;
 	}

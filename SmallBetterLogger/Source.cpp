@@ -13,8 +13,8 @@ int main()
 {
 	// Declarations (Logger)
 	sblogger::StreamLogger l;																		// Simplest way to make a logger
-	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[%F %T][%^er]");					// Set stream type and custom format
-	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::STREAM_TYPE::STDLOG, "[Log]");  // Making use of the abstract class
+	sblogger::stream_logger logErr(sblogger::StreamType::STDERR, "[%F %T][%^er]");					// Set stream type and custom format
+	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::StreamType::STDLOG, "[Log]");  // Making use of the abstract class
 
 	// Declarations (FileLogger)
 	sblogger::FileLogger fileLogger("example.log", "[File Log]");
@@ -43,7 +43,7 @@ int main()
 	// ======================================= TODELETE =======================================
 	sblogger::StreamLogger testingLogger("%{yellow}[%F %T] %^{yellow}%msg%{yellow} [%^lvl]%{reset}\n");
 
-	sblogger::StreamLogger::SetLoggingLevel(sblogger::LOG_LEVELS::WARN);
+	sblogger::StreamLogger::SetLoggingLevel(sblogger::LogLevel::WARN);
 	testingLogger.Error("Test");
 	testingLogger.WriteLine("%2.3Test, test");
 	testingLogger.WriteLine("%.5^er");
