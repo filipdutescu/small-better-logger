@@ -41,7 +41,7 @@ SOFTWARE.
 //
 // Either uncomment or define this macro, should your environment support colours and you wish to use them
 //
-//#define SBLOGGER_COLORS
+//#define SBLOGGER_COLOURS
 
 #if __cplusplus != 199711L
 	#if __cplusplus < 201703L
