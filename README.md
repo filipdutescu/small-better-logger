@@ -42,6 +42,10 @@ In order for **SBLogger** to work properly outside of **MS Windows**, you should
 
 > ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
 
+Compilers and platforms tested on:
+  * **Windows 10 Home** (both x86 and x64) with **MSVC 2019 (in VS 16.5.0)** using standards **C++14** and **C++17**
+  * **Arch Linux** (on x64) with **GCC 9.2.0** using standards **C++11**, **C++14** and **C++17** 
+
 #### Default Log Level
 During compile time, it is possible to set a default log level for all of the loggers, by defining the **```SBLOGGER_LOG_LEVEL```** and giving it a value ranging between 0 and 6 (the meaning will be explained a bit further in this section). **By default**, the loggers are all given the level of **Trace**. All loggers contain the static method ```void sblogger::SetLoggingLevel(const sblogger::LogLevel& level)```, which can be set to update the logging level at runtime for all loggers (more about ```LogLevel``` further in this section).
 
