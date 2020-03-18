@@ -212,7 +212,10 @@ namespace sblogger
 		~SBLoggerException() throw() = default;
 
 		// Get error message
-		inline const char* What() const throw();
+		inline const char* What() const noexcept;
+
+		// Get error message
+		inline virtual const char* what() const noexcept;
 	};
 
 	//
@@ -221,17 +224,17 @@ namespace sblogger
 
 	// Creates an exception with a given message
 	SBLoggerException::SBLoggerException(std::string& exception)
-		: std::exception(exception.c_str()), m_Exception(exception)
+		: std::exception(), m_Exception(exception)
 	{ }
 
 	// Creates an exception with a given message
 	SBLoggerException::SBLoggerException(std::string&& exception)
-		: std::exception(exception.c_str()), m_Exception(exception)
+		: std::exception(), m_Exception(exception)
 	{ }
 
 	// Creates an exception with a given message
 	SBLoggerException::SBLoggerException(const char* exception)
-		: std::exception(exception), m_Exception(exception)
+		: std::exception(), m_Exception(exception)
 	{ }
 
 	//
@@ -239,7 +242,10 @@ namespace sblogger
 	//
 
 	// Get error message
-	inline const char* SBLoggerException::What() const throw() { return m_Exception.c_str(); }
+	inline const char* SBLoggerException::What() const noexcept { return m_Exception.c_str(); }
+
+	// Get error message
+	inline const char* SBLoggerException::what() const noexcept { return m_Exception.c_str(); }
 
 	//
 	// NullOrEmptyPathException
@@ -1405,7 +1411,7 @@ namespace sblogger
 		//
 
 		// Get the file path
-#if SBLOGGER_LEGACY
+#ifdef SBLOGGER_LEGACY
 		std::string GetFilePath() const noexcept;
 #else
 		std::filesystem::path GetFilePath() const noexcept;
@@ -1589,7 +1595,7 @@ namespace sblogger
 	//
 
 	// Get the file path
-#if SBLOGGER_LEGACY
+#ifdef SBLOGGER_LEGACY
 	std::string FileLogger::GetFilePath() const noexcept
 #else
 	std::filesystem::path FileLogger::GetFilePath() const noexcept
