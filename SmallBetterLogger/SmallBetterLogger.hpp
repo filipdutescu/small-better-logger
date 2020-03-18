@@ -78,6 +78,8 @@ SOFTWARE.
 // Used for formatting and creating the output string
 #include <sstream>
 #include <vector>
+// Used for modf function
+#include <cmath>
 
 // Used for processing using time such as timed file logs and date formatting (if SBLOGGER_LEGACY is not defined)
 #include <chrono>
