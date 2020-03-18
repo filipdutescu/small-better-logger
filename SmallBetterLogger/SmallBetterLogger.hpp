@@ -129,6 +129,11 @@ namespace sblogger
 	class FileLogger;
 	using file_logger = FileLogger;
 
+	// Daily Logger
+	// Used to log messages to a file stream, recreated daily at a specified time point
+	class DailyLogger;
+	using daily_logger = DailyLogger;
+
 	//
 	// Custom exceptions' definition
 	//
@@ -1615,7 +1620,11 @@ namespace sblogger
 		}
 	}
 
-	
+	//
+	// DailyLogger class
+	//
+
+	// Used to log messages to a file stream, recreated daily at the specified time point
 	class DailyLogger : public FileLogger
 	{
 		//
