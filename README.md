@@ -125,7 +125,7 @@ All loggers have the following general methods for printing and formatting messa
 
 > ***Note:*** *```sblogger::Write``` and ```sblogger::WriteLine``` methods use a logging level of **Trace**.*
 
-> ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Default Log Level](README.md#Default-Log-Level) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP).*
+> ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Default Log Level](README.md#Default-Log-Level) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki).*
 
 **```sblogger::StreamLogger```** contains an additional method:
   * ```void SetStreamType(sblogger::StreamType streamType)``` - change the current stream type to a different ```sblogger::StreamType```
@@ -143,16 +143,16 @@ For all the aforementioned methods of logging there are also compile-time ways o
 
 > ***Note:*** *The ```x``` found in the macro parameters denotes the message that would be passed in the method calls, shown previously. In the case of the predefined macros it is mandatory to have it.*
 
-> ***Note:*** *The predefined macros also expose placeholders for the ***file***, ***line*** and ***function*** information. Please check the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)* for more info related to placeholders.*
+> ***Note:*** *The predefined macros also expose placeholders for the ***file***, ***line*** and ***function*** information. Please check the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) for more info related to placeholders.*
 
 Another important aspect concerning this way of logging is that **those macros are available based on whether or not the ```SBLOGGER_LOG_LEVEL``` macro is defined** (which is defined and initialized by default with the ```SBLOGGER_LEVEL_TRACE``` value).
 
-> ***Note:*** *For more information regarding available methods and macros, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.*
+> ***Note:*** *For more information regarding available methods and macros, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki).*
 
 ***
 
 ### Placeholders
-**SBLogger** provides a good amount of placeholders at your disposal, in order to allow easier creation and formatting of logs. They vary from date related placeholders (such as for the current date or time) to colour placeholders (which allow you to add colours for ```sblogger::StreamLogger``` generated output). Below you can find a short summary of the most relevant of those placeholders, with more detail to be found in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*:
+**SBLogger** provides a good amount of placeholders at your disposal, in order to allow easier creation and formatting of logs. They vary from date related placeholders (such as for the current date or time) to colour placeholders (which allow you to add colours for ```sblogger::StreamLogger``` generated output). Below you can find a short summary of the most relevant of those placeholders, with more detail to be found in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki):
 
 | Placeholder     | Meaning                                                                      | Other                                                                                    |
 |-----------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
@@ -170,7 +170,7 @@ Another important aspect concerning this way of logging is that **those macros a
 | **%fnc**        | Replace with the name of the current function (no return type params. etc.)  | Only works using the [predefined macros for logging](README.md#Logger-Predefined-Macros) |
 | **Time & Date** | Same as those from [```strftime```](https://en.cppreference.com/w/cpp/chrono/c/strftime) or [```std::chrono::format```](https://en.cppreference.com/w/cpp/chrono/format) | N/A |
 
-> ***Note:*** *You can find more about the available placeholders (those being only part of all of the placeholders) by going to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.*
+> ***Note:*** *You can find more about the available placeholders (those being only part of all of the placeholders) by going to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki).*
 
 ***
 
@@ -220,7 +220,7 @@ World!
 
 ***
 
-If you wanted to stylize your logs a bit, a basic way to do this is to use a [format](http://github.com/filipdutescu/small-better-logger/wiki) *(WIP)* when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
+If you wanted to stylize your logs a bit, a basic way to do this is to use a [format](http://github.com/filipdutescu/small-better-logger/wiki) when instantiating a logger and/or use ```sblogger::Logger::Indent```/```sblogger::Logger::Dedent```, as follows:
 ````cpp
 ...
 #include "SmallBetterLogger.hpp"
@@ -248,7 +248,7 @@ Output:
 
 ````
 
-> ***Note:*** *You can find more about the supported formats in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP) and basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
+> ***Note:*** *You can find more about the supported formats in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) and basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
