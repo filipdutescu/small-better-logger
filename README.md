@@ -100,7 +100,7 @@ auto currentLevel = sblogger::Logger::GetLoggingLevel();  // Example of getting 
 ````
 
 ## Usage
-All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 3 types: 
+All the code which is related to the **SBLogger** is located in the ```sblogger``` namespace. The loggers are of 3 types: 
   * **```sblogger::StreamLogger```** (which writes to the standard streams)
   * **```sblogger::FileLogger```** (which writes to a file) - which also has a specialized derivate,
     * **```sblogger::DailyLogger```** (which writes to a file that changes daily at the specified time) 
