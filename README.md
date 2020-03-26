@@ -8,7 +8,7 @@ This section will provide the information needed to include **SBLogger** in your
 ### Prerequisites
 This library was developed using **C++17** and thus you will have the best experience using a **C++17 (or later)** compiler. For compilers pre **C++17** (**C++11** or **C++14**) or post **C++17** (as of this writing, **C++20**), please refer to [Setting Up](README.md#Setting-Up).
 
-### Including as Source Code
+### Including in Your Projects
 All you need to do if you wish to use **SBLogger** (in a C++ project) is to clone/fork the repo or download the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file to your project and add it as a header file in your code:
 ````cpp
 ...
@@ -16,7 +16,7 @@ All you need to do if you wish to use **SBLogger** (in a C++ project) is to clon
 ...
 ````
 
-### Including as Library (WIP)
+***
 
 ### Setting Up
 
@@ -33,41 +33,146 @@ Please define them either before including **SBLogger** or in the first line of 
 ````
 > ***Note:*** *For **MSVC** you can fix this problem, by setting up the **`/Zc:__cplusplus`** compiler option. If you do not know how to do this, please refer to the following [Microsoft guide](https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019#to-set-this-compiler-option-in-visual-studio) for setting it up.*
 
+***
+
 #### Cross-Platform Info
-In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the begining of the file preferably) the following macros:
+In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the beginning of the file preferably) the following macros:
   * ```#define SBLOGGER_NIX``` - for **Unix/Linux** and **Mac OS X+**
   * ```#define SBLOGGER_OS9``` - for **Mac OS 9 and lower**
 
 > ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
 
-#### Default Log Level (WIP)
+Compilers and platforms tested on:
+  * **Windows 10 Home** (both x86 and x64) with **MSVC 2019 (in VS 16.5.0)** using standards **C++14** and **C++17**
+  * **Arch Linux** (on x64) with **GCC 9.2.0** using standards **C++11**, **C++14** and **C++17** 
+
+#### Default Log Level
+During compile time, it is possible to set a default log level for all of the loggers, by defining the **```SBLOGGER_LOG_LEVEL```** and giving it a value ranging between 0 and 6 (the meaning will be explained a bit further in this section). **By default**, the loggers are all given the level of **Trace**. All loggers contain the static method ```void sblogger::SetLoggingLevel(const sblogger::LogLevel& level)```, which can be set to update the logging level at runtime for all loggers (more about ```LogLevel``` further in this section).
+
+To set the desired log level at compile time, either uncomment the line in the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file which defines the previously mentioned macro as ```SBLOGGER_LEVEL_TRACE```, or defined your own before including **SBLogger**:
+
+````cpp
+#define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE // Example found in "SmallBetterLogger.hpp"
+````
+Or using a number rather than another macro:
+````cpp
+#define SBLOGGER_LOG_LEVEL 0    // Equivalent to the example above
+````
+
+The values that ```SBLOGGER_LOG_LEVEL``` macro can take values from 0 to 6, each of them having the following meanings, as defined in the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file:
+
+````cpp
+// Log Levels macros to be used with "SBLOGGER_LOG_LEVEL" macro for defining a default level
+#define SBLOGGER_LEVEL_TRACE     0
+#define SBLOGGER_LEVEL_DEBUG     1
+#define SBLOGGER_LEVEL_INFO      2
+#define SBLOGGER_LEVEL_WARN      3
+#define SBLOGGER_LEVEL_ERROR     4
+#define SBLOGGER_LEVEL_CRITICAL  5
+#define SBLOGGER_LEVEL_OFF       6
+````
+> ***Note:*** *Should any other value be provided - concretely, any value lower than 0 or higher than 6, ***SBLogger*** will assume a default level of **```SBLOGGER_LEVEL_TRACE```**.*
+
+To change the level of all logs (**for all loggers**, concretely: ```sblogger::StreamLogger```, ```sblogger::FileLogger``` or ```sblogger::DailyLogger```) during runtime, one can use the ```void sblogger::SetLoggingLevel(const sblogger::LogLevel& level)``` static method, accessible from all of the loggers. It takes as its parameter a value of the ```sblogger::LOG_LEVEL``` enum, which can be one of the following:
+
+````cpp
+// Log level enum. Contains all possible log levels, such as TRACE, ERROR, FATAL etc.
+enum class LogLevel
+{ 
+  TRACE /*= 0*/, DEBUG /*= 1*/, INFO /*= 2*/, WARN /*= 3*/, ERROR /*= 4*/, CRITICAL /*= 5*/, OFF /*= 6*/ 
+};
+````
+
+As you can see, they mirror the previously defined log level macros. With this, one can now set the logging level during runtime, as follows:
+
+````cpp
+...
+sblogger::Logger::SetLoggingLevel(sblogger::LogLevel::WARN);  // Example of setting the level to WARN at runtime
+...
+````
+
+The current logging level can also be found out at runtime, by using the ```const sblogger::LogLevel sblogger::GetLoggingLevel()``` static method, also found in all loggers:
+
+````cpp
+...
+auto currentLevel = sblogger::Logger::GetLoggingLevel();  // Example of getting the current level
+...
+````
 
 ## Usage
-All the code which is related to the **SBL** is located in the ```sblogger``` namespace. The loggers are of 2 types: 
+All the code which is related to the **SBLogger** is located in the ```sblogger``` namespace. The loggers are of 3 types: 
   * **```sblogger::StreamLogger```** (which writes to the standard streams)
   * **```sblogger::FileLogger```** (which writes to a file) - which also has a specialized derivate,
     * **```sblogger::DailyLogger```** (which writes to a file that changes daily at the specified time) 
 
-There is also an enum, ```sblogger::STREAM_TYPES``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. The library also defines its own custom errors ***(WIP)***.
+There is also an enum, ```sblogger::StreamType``` which is useful when logging with ```sblogger::StreamLogger```, in order to specify STDOUT, STDERR or STDLOG. The library also defines its own custom errors, which help identify issues a user might run into:
+  * ```sblogger::SBLoggerException``` - the default base error from **SBLogger**
+  * ```sblogger::NullOrEmptyPathException``` - thrown when the given file path is null or empty
+  * ```sblogger::NullOrWhitespaceNameException``` - thrown when the given file name is null or whitespace
+  * ```sblogger::InvalidFilePathException``` - thrown when the specified file could not be opened
+  * ```sblogger::TimeRangeException``` - thrown when a time related value is out of bounds (e.g.: hours not in [0, 23])
 
-> ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_types```).*
+> ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_type```).*
 
+### Logging messages
 ### Logger Methods
 All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
-  * ```void Write(...)``` - write the message ```const std::string& message``` after replacing all placehodlers with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
-  * ```void WriteLine([...])``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
-  * ```int Indent()```/```int Dedent()``` - increase/decrease indent by 1
-  * ```void Flush()``` - flushes the stream
+  * ```void Logger::Write(...)``` - write the message ```const std::string& message``` after replacing all placeholders with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
+  * ```void Logger::WriteLine([...])``` - same as ```sblogger::Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * ```void Logger::Trace/Debug/Info/Warn/Error/Critical(...)``` - same as the ```Logger::Write(...)``` method previously mentioned, with the addition that output from the call of one of those methods will only appear if the log level (at the time of the call) is at most the same as the method's (i.e. a message written with ```Logger::Info(...)``` will only appear if the log level is set to **Info**)
+  * ```int Logger::Indent()```/```int Dedent()``` - increase/decrease indent by 1
+  * ```void Logger::Flush()``` - flushes the stream
 
-> ***Note:*** *Specific logging methods, which make usage of different logging levels also exist (ex: ```sblogger::Logger::Trace```, ```sblogger::Logger::Info```, ```sblogger::Logger::Error``` etc.). More information concerning them can be found either in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP) or in the examples ([Usage Examples](README.md#Usage-Examples) or the [`Source.cpp`](SmallBetterLogger/Source.cpp) file).*
+> ***Note:*** *```sblogger::Write``` and ```sblogger::WriteLine``` methods use a logging level of **Trace**.*
 
-**```sblogger::StreamLogger```** constains an additional method:
-  * ```void SetStreamType(STREAM_TYPE streamType)``` - change the current stream type to a different ```STREAM_TYPE```
+> ***Note:*** *In order to set the logging level, you can do it either at compile or at run time. More information concerning them can be found either in the [Default Log Level](README.md#Default-Log-Level) section or in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) (WIP).*
 
-**```sblogger::FileLogger```** also contains an additional method:
+**```sblogger::StreamLogger```** contains an additional method:
+  * ```void SetStreamType(sblogger::StreamType streamType)``` - change the current stream type to a different ```sblogger::StreamType```
+
+**```sblogger::FileLogger```** (and thus **```sblogger::DailyLogger```** as well) also contains an additional method:
   * ```void ClearLogs()``` - removes all content from the log file
 
-For more information regarding available methods, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.
+***
+
+### Logger Predefined Macros
+For all the aforementioned methods of logging there are also compile-time ways of outputting messages to streams. There are predefined macros for each method, with the exception of ```sblogger::Indent```, ```sblogger::Dedent``` and ```sblogger::Flush```.
+  * ```SBLOGGER_WRITE(x, ...)``` - write the message ```const std::string& message``` after replacing all placeholders with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
+  * ```SBLOGGER_WRITELINE(x, ...)``` - same as ```Write(...)```, but appends the newline character (system dependent, define system macros for proper support, check the [Cross-Platform Info](README.md#Cross-Platform-Info))
+  * ```void SBLOGGER_TRACE/SBLOGGER_DEBUG/SBLOGGER_INFO/SBLOGGER_WARN/SBLOGGER_ERROR/SBLOGGER_CRITICAL(x, ...)``` - same as the ```SBLOGGER_WRITE(x, ...)``` method previously mentioned, with the addition that output from the call of one of those methods will only appear if the log level (at the time of the call) is at most the same as the method's (i.e. a message written with ```SBLOGGER_INFO(x, ...)``` will only appear if the log level is set to **Info**)
+
+> ***Note:*** *The ```x``` found in the macro parameters denotes the message that would be passed in the method calls, shown previously. In the case of the predefined macros it is mandatory to have it.*
+
+> ***Note:*** *The predefined macros also expose placeholders for the ***file***, ***line*** and ***function*** information. Please check the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)* for more info related to placeholders.*
+
+Another important aspect concerning this way of logging is that **those macros are available based on whether or not the ```SBLOGGER_LOG_LEVEL``` macro is defined** (which is defined and initialized by default with the ```SBLOGGER_LEVEL_TRACE``` value).
+
+> ***Note:*** *For more information regarding available methods and macros, please refer to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.*
+
+***
+
+### Placeholders
+**SBLogger** provides a good amount of placeholders at your disposal, in order to allow easier creation and formatting of logs. They vary from date related placeholders (such as for the current date or time) to colour placeholders (which allow you to add colours for ```sblogger::StreamLogger``` generated output). Below you can find a short summary of the most relevant of those placeholders, with more detail to be found in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*:
+
+| Placeholder     | Meaning                                                                      | Other                                                                                    |
+|-----------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| **{i}**         | Replace with the value of the **i**th parameter from the method call         | If parameter **i** does not exist, the placeholder won't be replaced                     |
+| **%[^]tr**      | Replace with the string ```"Trace"```                                        | Using ```^``` (```%^tr```) will use the string ```"TRACE"```                             |
+| **%[^]dbg**     | Replace with the string ```"Debug"```                                        | Using ```^``` (```%^dbg```) will use the string ```"DEBUG"```                            |
+| **%[^]inf**     | Replace with the string ```"Info"```                                         | Using ```^``` (```%^inf```) will use the string ```"INFO"```                             |
+| **%[^]wn**      | Replace with the string ```"Warn"```                                         | Using ```^``` (```%^wn```) will use the string ```"WARN"```                              |
+| **%[^]er**      | Replace with the string ```"Error"```                                        | Using ```^``` (```%^er```) will use the string ```"ERROR"```                             |
+| **%[^]crt**     | Replace with the string ```"Critical"```                                     | Using ```^``` (```%^crt```) will use the string ```"CRITICAL"```                         |
+| **%[^]lvl**     | Replace with the aforementioned string that corresponds to the current level | Using ```^``` (```%^lvl```) will use the uppercase string                                |
+| **%src**        | Replace with the name of the current file                                    | Only works using the [predefined macros for logging](README.md#Logger-Predefined-Macros) |
+| **%fsrc**       | Replace with the complete path and name of the current file                  | Only works using the [predefined macros for logging](README.md#Logger-Predefined-Macros) |
+| **%ln**         | Replace with the current line of the file that the call is made in           | Only works using the [predefined macros for logging](README.md#Logger-Predefined-Macros) |
+| **%fnc**        | Replace with the name of the current function (no return type params. etc.)  | Only works using the [predefined macros for logging](README.md#Logger-Predefined-Macros) |
+| **Time & Date** | Same as those from [```strftime```](https://en.cppreference.com/w/cpp/chrono/c/strftime) or [```std::chrono::format```](https://en.cppreference.com/w/cpp/chrono/format) | N/A |
+
+> ***Note:*** *You can find more about the available placeholders (those being only part of all of the placeholders) by going to the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) *(WIP)*.*
+
+***
 
 ### Usage Examples
 The quickest way to use **SBLogger** is to simply create an instance of it. Then just use the methods available for outputting your logs:

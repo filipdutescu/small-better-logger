@@ -8,8 +8,8 @@ int main()
 {
 	// Declarations (Logger)
 	sblogger::StreamLogger l;																		// Simplest way to make a logger
-	sblogger::stream_logger logErr(sblogger::STREAM_TYPE::STDERR, "[%F %T][%^er]");					// Set stream type and custom format
-	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::STREAM_TYPE::STDLOG, "[Log]");  // Making use of the abstract class
+	sblogger::stream_logger logErr(sblogger::StreamType::STDERR, "[%F %T][%^er]");					// Set stream type and custom format
+	sblogger::logger* logLog = new sblogger::StreamLogger(sblogger::StreamType::STDLOG, "[Log]");  // Making use of the abstract class
 
 	// Declarations (FileLogger)
 	sblogger::FileLogger fileLogger("example.log", "[File Log]");
@@ -34,7 +34,7 @@ int main()
 	fileLogger.WriteLine("This is a test.");	// All methods previously shown can also be used with files
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
-
+	
 	delete logLog;
 	std::cin.get();
 
