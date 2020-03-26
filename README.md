@@ -49,7 +49,7 @@ Compilers and platforms tested on:
 #### Default Log Level
 During compile time, it is possible to set a default log level for all of the loggers, by defining the **```SBLOGGER_LOG_LEVEL```** and giving it a value ranging between 0 and 6 (the meaning will be explained a bit further in this section). **By default**, the loggers are all given the level of **Trace**. All loggers contain the static method ```void sblogger::SetLoggingLevel(const sblogger::LogLevel& level)```, which can be set to update the logging level at runtime for all loggers (more about ```LogLevel``` further in this section).
 
-To set the desired log level at compile time, either uncomment the line in the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file which defines the previously mentioned macro as ```SBLOGGER_LEVEL_TRACE```, or defined your own before including **SBLogger**:
+To set the desired log level at compile time, either uncomment the line in the [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) file which defines the previously mentioned macro as ```SBLOGGER_LEVEL_TRACE```, or define your own before including **SBLogger**:
 
 ````cpp
 #define SBLOGGER_LOG_LEVEL SBLOGGER_LEVEL_TRACE // Example found in "SmallBetterLogger.hpp"
