@@ -34,6 +34,22 @@ int main()
 	fileLogger.WriteLine("This is a test.");	// All methods previously shown can also be used with files
 	fileLogger.Indent();
 	fileLogger.Write("Hello World!");
+
+	// ================================================ TODELETE ================================================
+	auto testThreading = [&](int a) {
+		for (unsigned int i = 0u; i < 10u; ++i)
+			fileLogger.WriteLine("This is thread {0} writing {1}", a, i);
+	};
+
+	fileLogger.Dedent();
+	fileLogger.WriteLine();
+
+	std::thread threads[3]{ std::thread(testThreading, 1), std::thread(testThreading, 2), std::thread(testThreading, 3) };
+	threads[0].join();
+	threads[1].join();
+	threads[2].join();
+	std::cout << "done";
+	// ============================================== END TODELETE ==============================================
 	
 	delete logLog;
 	std::cin.get();

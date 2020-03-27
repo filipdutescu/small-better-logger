@@ -43,6 +43,7 @@ SOFTWARE.
 //
 //#define SBLOGGER_COLOURS
 
+// Detect the standard used and set the appropriate macros
 #if __cplusplus != 199711L
 	#if __cplusplus < 201703L
 		// For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
@@ -52,6 +53,13 @@ SOFTWARE.
 		// For formatting dates to string pre C++20
 		#define SBLOGGER_OLD_DATES
 	#endif
+#endif
+
+// Detect OS and set the appropriate macros
+#if __linux__ || __ANDROID__ || __unix__ || __APPLE__
+	#define SBLOGGER_NIX
+#elif macintosh || Macintosh
+	#define SBLOGGER_OS9
 #endif
 
 // Cross-platform newline macros
@@ -89,7 +97,6 @@ SOFTWARE.
 // Used for asynchronous operations such as changing files for timed file logs
 #include <thread>
 #include <mutex>
-#include <condition_variable>
 
 // For pre C++17 compilers define the "SBLOGGER_LEGACY" macro, to replace <filesystem> operations with regex and other alternatives
 #ifdef SBLOGGER_LEGACY
@@ -444,10 +451,10 @@ namespace sblogger
 		virtual inline void Flush() noexcept = 0;
 
 		// Indent (prepend '\t') log, returns the number of indents the final message will contain
-		inline const size_t Indent() noexcept;
+		virtual inline const size_t Indent() noexcept;
 
 		// Dedent (remove '\t') log, returns the number of indents the final message will contain
-		inline const size_t Dedent() noexcept;
+		virtual inline const size_t Dedent() noexcept;
 
 		//
 		// Generic Methods: Write a TRACE level message (depending on the specified "LOG_LEVEL") to a stream
@@ -1358,6 +1365,7 @@ namespace sblogger
 		std::filesystem::path m_FilePath;
 #endif
 		std::fstream m_FileStream;
+		std::mutex m_Mutex;
 
 		//
 		// Protected methods
@@ -1401,7 +1409,7 @@ namespace sblogger
 		// Destructor
 
 		// Flush and close stream if open
-		inline ~FileLogger() override;
+		inline virtual ~FileLogger() override;
 
 		//
 		// Overloaded operators
@@ -1423,6 +1431,12 @@ namespace sblogger
 
 		// Flush file stream
 		inline virtual void Flush() noexcept override;
+
+		// Indent (prepend '\t') log, returns the number of indents the final message will contain
+		virtual inline const size_t Indent() noexcept override;
+
+		// Dedent (remove '\t') log, returns the number of indents the final message will contain
+		virtual inline const size_t Dedent() noexcept override;
 
 		// Clear log file
 		inline virtual void ClearLogs() noexcept;
@@ -1566,6 +1580,8 @@ namespace sblogger
 	// Flush and close stream if open
 	inline FileLogger::~FileLogger()
 	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+
 		if (m_FileStream.is_open())
 		{
 			m_FileStream.flush();
@@ -1580,6 +1596,7 @@ namespace sblogger
 	// Writes string to file stream and flush if auto flush is set
 	inline void FileLogger::writeToStream(const std::string&& str)
 	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
 		if (!m_FileStream.is_open())
 #ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
 			std::cerr << "The file stream " + m_FilePath + " is not opened.";
@@ -1611,13 +1628,35 @@ namespace sblogger
 	// Flush file stream
 	inline void FileLogger::Flush() noexcept
 	{
-		if(m_FileStream.is_open())
+		if (m_Mutex.try_lock())
+		{
+			std::unique_lock<std::mutex> lock(m_Mutex);
+			if (m_FileStream.is_open())
+				m_FileStream.flush();
+			lock.unlock();
+		}
+		else if (m_FileStream.is_open())
 			m_FileStream.flush();
+	}
+
+	// Indent (prepend '\t') log, returns the number of indents the final message will contain
+	inline const size_t FileLogger::Indent() noexcept
+	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+		return ++m_IndentCount;
+	}
+
+	// Dedent (prepend '\t') log, returns the number of indents the final message will contain
+	inline const size_t FileLogger::Dedent() noexcept
+	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+		return m_IndentCount > 0 ? --m_IndentCount : m_IndentCount;
 	}
 
 	// Clear log file
 	inline void FileLogger::ClearLogs() noexcept
 	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
 		if (m_FileStream.is_open())
 		{
 #ifdef SBLOGGER_LEGACY
@@ -1642,7 +1681,6 @@ namespace sblogger
 		//
 
 		std::thread m_FileChangeThread;
-		std::mutex m_Mutex;
 		std::string m_FileNameFormat;
 		std::chrono::system_clock::time_point m_NextChangeTime;
 		int m_Hours, m_Minutes, m_Seconds;
@@ -1651,9 +1689,6 @@ namespace sblogger
 		//
 		// Protected methods
 		//
-
-		// Writes string to file stream and flush if auto flush is set
-		inline virtual void writeToStream(const std::string&& str) override;
 
 		// Check if it is time to change the current file (closing it) and open the new one, according to the time provided
 		inline void changeFile();
@@ -1701,16 +1736,6 @@ namespace sblogger
 
 		// Assignment operator (deleted since having two streams for the same file causes certain output not to be written).
 		inline DailyLogger& operator=(const DailyLogger& other) = delete;
-
-		//
-		// Public methods
-		//
-
-		// Flush file stream
-		inline virtual void Flush() noexcept override;
-
-		// Clear log file
-		inline virtual void ClearLogs() noexcept override;
 	};
 
 	//
@@ -1841,25 +1866,6 @@ namespace sblogger
 	// Protected methods
 	//
 
-	// Writes string to file stream and flush if auto flush is set
-	inline void DailyLogger::writeToStream(const std::string&& str)
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		if (!m_FileStream.is_open())
-#ifdef SBLOGGER_LEGACY // Pre C++17 Compilers
-			std::cerr << "The file stream " + m_FilePath + " is not opened.";
-#else
-			std::cerr << "The file stream " + m_FilePath.string() + " is not opened.";
-#endif
-		else
-		{
-			m_FileStream << str;
-			if (m_AutoFlush)
-				m_FileStream.flush();
-		}
-	}
-
 	// Check if it is time to change the current file (closing it) and open the new one, according to the time provided
 	inline void DailyLogger::changeFile()
 	{
@@ -1895,47 +1901,16 @@ namespace sblogger
 				{
 					m_FileStream.flush();
 					m_FileStream.close();
-
-					std::string formattedFilePath(m_FileNameFormat);
-					addPadding(formattedFilePath);
-					addColours(formattedFilePath);
-					replacePredefinedPlaceholders(formattedFilePath);
-					replaceCurrentLevel(formattedFilePath);
-					replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
-					replaceDateFormats(formattedFilePath);
-					m_FileStream = std::fstream((m_FilePath = formattedFilePath), std::ios::out | std::ios::trunc);
 				}
+				std::string formattedFilePath(m_FileNameFormat);
+				addPadding(formattedFilePath);
+				addColours(formattedFilePath);
+				replacePredefinedPlaceholders(formattedFilePath);
+				replaceCurrentLevel(formattedFilePath);
+				replaceOthers(formattedFilePath, nullptr, nullptr, nullptr);
+				replaceDateFormats(formattedFilePath);
+				m_FileStream = std::fstream((m_FilePath = formattedFilePath), std::ios::out | std::ios::trunc);
 			}
-		}
-	}
-
-	//
-	// Public methods
-	//
-
-	// Flush file stream
-	inline void DailyLogger::Flush() noexcept
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		if (m_FileStream.is_open())
-			m_FileStream.flush();
-	}
-
-	// Clear log file
-	inline void DailyLogger::ClearLogs() noexcept
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		if (m_FileStream.is_open())
-		{
-#ifdef SBLOGGER_LEGACY
-			m_FileStream.close();
-			m_FileStream = std::fstream(m_FilePath, std::ofstream::out | std::ofstream::trunc);
-#else
-			std::filesystem::resize_file(m_FilePath, 0);
-			m_FileStream.seekp(0);
-#endif
 		}
 	}
 }
