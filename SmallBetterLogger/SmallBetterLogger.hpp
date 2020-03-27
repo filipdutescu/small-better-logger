@@ -56,7 +56,7 @@ SOFTWARE.
 #endif
 
 // Detect OS and set the appropriate macros
-#if (macintosh || Macintos) && ! __APPLE__
+#if macintosh || Macintos
 	#define SBLOGGER_OS9
 #elif !_WIN32
 	#define SBLOGGER_NIX
