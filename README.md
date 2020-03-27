@@ -1,5 +1,5 @@
 # Small, Better Logger
-A small, better logger for C++ 
+A small, better logger for C++, which features thread-safe loggers.
 
 ## Getting Started
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library.
@@ -115,6 +115,8 @@ There is also an enum, ```sblogger::StreamType``` which is useful when logging w
 > ***Note:*** *All those previously mentioned can also be written with lowercase letters (i.e.: ```sblogger::stream_logger```, ```sblogger::stream_type```).*
 
 ### Logging messages
+Each of the loggers ensure thread-safety when writing to streams or manipulating them. Any of the following methods enforces compliance with this behaviour.
+
 ### Logger Methods
 All loggers have the following general methods for printing and formatting messages (inherited from ```sblogger::Logger```):
   * ```void Logger::Write(...)``` - write the message ```const std::string& message``` after replacing all placeholders with the respective parameter value (ex.: ```"{0}"``` will be changed to the value of the first parameter after the string)
