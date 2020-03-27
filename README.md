@@ -36,11 +36,11 @@ Please define them either before including **SBLogger** or in the first line of 
 ***
 
 #### Cross-Platform Info
-In order for **SBLogger** to work properly outside of **MS Windows**, you should define (at the beginning of the file preferably) the following macros:
+In order for **SBLogger** to work properly outside of **MS Windows**, **SBLogger** automatically detects the OS (based on the criteria found [here](wiki/Setting-Up#Cross-Platform-Info)), defining the following macros:
   * ```#define SBLOGGER_NIX``` - for **Unix/Linux** and **Mac OS X+**
   * ```#define SBLOGGER_OS9``` - for **Mac OS 9 and lower**
 
-> ***Note:*** *There is no need to define any macros for ***Windows***, as that is the default for this library.*
+> ***Note:*** *By default, ***MS Windows*** is assumed as the OS for this library.*
 
 Compilers and platforms tested on:
   * **Windows 10 Home** (both x86 and x64) with **MSVC 2019 (in VS 16.5.0)** using standards **C++14** and **C++17**
