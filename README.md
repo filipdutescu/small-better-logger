@@ -1,3 +1,7 @@
+<p align="right">
+  <a href="https://github.com/filipdutescu/small-better-logger/releases"><img src="https://img.shields.io/github/v/release/filipdutescu/small-better-logger"></a>
+</p>
+
 # Small, Better Logger
 A small, better logger for C++, which features thread-safe loggers.
 
