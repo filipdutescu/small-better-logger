@@ -256,6 +256,9 @@ Output:
 
 > ***Note:*** *You can find more about the supported formats in the [Wiki](https://github.com/filipdutescu/small-better-logger/wiki) and basic usage examples in the [`Source.cpp`](SmallBetterLogger/Source.cpp) file.*
 
+## Author
+  * **Filip-Ioan Dutescu** - [@filipdutescu](https://github.com/filipdutescu)
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) or [`SmallBetterLogger.hpp`](SmallBetterLogger/SmallBetterLogger.hpp) files for details.
 
