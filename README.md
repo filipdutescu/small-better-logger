@@ -3,7 +3,7 @@
 </p>
 
 # Small, Better Logger
-A small, better logger for C++, which features thread-safe loggers.
+A small, better logger library for C++, which features thread-safe loggers.
 
 ## Getting Started
 This section will provide the information needed to include **SBLogger** in your projects, either as source code or as a library.
